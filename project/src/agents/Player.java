@@ -20,7 +20,8 @@ public class Player extends Agent {
     protected ServiceDescription serviceDescription;
     protected State state;
     private AID moderatorName;
-
+    private PlayerType type;
+    
     public Player() {
         this.state = State.CONNECTING;
         this.serviceDescription = new ServiceDescription();
