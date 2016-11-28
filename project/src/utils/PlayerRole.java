@@ -1,5 +1,5 @@
 package utils;
 
-public enum PlayerType {
+public enum PlayerRole {
 	Villager, Werewolf, FortuneTeller;
 }

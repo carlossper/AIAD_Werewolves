@@ -1,32 +1,39 @@
 package agents;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
+import users.User;
 import utils.*;
 
 /**
  * Created by ruben on 10/11/2016.
  */
 public class Moderator extends Agent{
-    private int numbersPlayers;
+    private int numberPlayers;
     private ServiceDescription serviceDescription;
     private State state;
-
+	//private ArrayList<User> users;
+    private ConcurrentHashMap<AID,User> users;
     private Random randomGenerator = new Random();
     
     public Moderator() {
-        this.numbersPlayers = 0;
+		users = new ConcurrentHashMap<AID,User>();
         this.state = State.REGISTER;
         this.serviceDescription = new ServiceDescription();
     }
 
     @Override
     protected void setup() {
+        Object[] args = getArguments();
+        this.numberPlayers = Integer.parseInt((String)args[0]);
+        System.out.println(numberPlayers);
         addBehaviour(new CyclicBehaviour() {
             @Override
             public void action() {
@@ -51,15 +58,31 @@ public class Moderator extends Agent{
                                 System.out.println("Pedido de ligacao recebido.");
                                 Utils.sendMessage("Quer jogar Werewolf?",msg.getSender(),ACLMessage.PROPOSE,myAgent);
                             }
-                            break;
-                        case ACLMessage.ACCEPT_PROPOSAL:
 
-                            if(msg.getContent().equals("Aceito Ligacao"));
+                            if(msg.getContent().equals("Sim, estou pronto."))
                             {
-                                System.out.println("resposta de aceitação recebido");
-                                numbersPlayers++;
-                                
-                                if(numbersPlayers==5) generatePlayerTypes();
+                               users.get(msg.getSender()).setAlive(true);
+                               numberPlayers++;
+                            }
+                            break;
+
+
+                        case ACLMessage.ACCEPT_PROPOSAL:
+                            if(state == State.STARTING) {
+                                if (msg.getContent().equals("Aceito Ligacao")) ;
+                                {
+                                    System.out.println("resposta de aceitação recebido");
+                                    users.put(msg.getSender(), new User(msg.getSender()));
+                                    System.out.println(users.size());
+
+
+                                    if (users.size() == numberPlayers)
+                                    {
+                                        state = State.ALLCONNECTED;
+                                        sendStartGameMessage();
+                                        numberPlayers = 0;
+                                    }
+                                }
                             }
                             break;
 
@@ -67,10 +90,12 @@ public class Moderator extends Agent{
                 }
                 else
                     block();
-                System.out.println("numPlayers: " + numbersPlayers);
+                System.out.println("numPlayers: " + numberPlayers);
             }
         });
     }
+
+
 
     private void update() {
         switch (state)
@@ -78,6 +103,9 @@ public class Moderator extends Agent{
             case REGISTER: this.serviceConfig();
                 break;
             case STARTING: break;
+            case ALLCONNECTED:
+                if(numberPlayers == users.size())
+                generatePlayerTypes();
         }
 
     }
@@ -91,27 +119,37 @@ public class Moderator extends Agent{
     }
 
     private void generatePlayerTypes() {
-    	PlayerType[] playerTypes = new PlayerType[numbersPlayers];
-    	
-    	//generate villagers
-    	Arrays.fill(playerTypes, PlayerType.Villager);
-    	
-    	//generate wolves - 40% of players
-    	int rand=0;
-    	for(int i=0; i<0.4*numbersPlayers; i++) {
+
+        System.out.println("chegou");
+        //generate villagers
+        //generate villagers
+        for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
+
+            entry.getValue().setRole(PlayerRole.Villager);
+        }
+    	//generate wolves - 30% of players
+    	/*int rand=0;
+    	for(int i=0; i<0.3*numbersPlayers; i++) {
     		rand = randomGenerator.nextInt(numbersPlayers);
-    		playerTypes[rand]=PlayerType.Werewolf;
-    	}
+    		playerRoles[rand]=PlayerRole.Werewolf;
+    	}*/
     	
-    	//generate fortune_teller - 1
+    	/*//generate fortune_teller - 1
     	do {
     		rand = randomGenerator.nextInt(numbersPlayers);
-    		if(playerTypes[rand]!=PlayerType.Werewolf) playerTypes[rand]=PlayerType.FortuneTeller;
-    	}while(playerTypes[rand]!=PlayerType.FortuneTeller);
-    	
-    	for(int i=0;i<numbersPlayers; i++) {
-    		System.out.println("Type[" + i + "]:" + playerTypes[i]);
+    		if(playerRoles[rand]!=PlayerRole.Werewolf) playerRoles[rand]=PlayerRole.FortuneTeller;
+    	}while(playerRoles[rand]!=PlayerRole.FortuneTeller);
+    	*/
+    	for(int i=0;i<users.size(); i++) {
+    		System.out.println("Type[" + i + "]:" + users.get(i).getRole());
     	}
+    	state  = State.GAMEON;
     }
 
+    private void sendStartGameMessage() {
+        for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
+            AID name = entry.getKey();
+            Utils.sendMessage("O jogo pode começar?",name,ACLMessage.INFORM,this);
+        }
+    }
 }

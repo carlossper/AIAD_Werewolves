@@ -1,7 +1,6 @@
 package agents;
 
-import behaviours.SendMessage;
-import com.sun.corba.se.spi.orbutil.fsm.*;
+
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
@@ -20,7 +19,7 @@ public class Player extends Agent {
     protected ServiceDescription serviceDescription;
     protected State state;
     private AID moderatorName;
-    private PlayerType type;
+    private PlayerRole role;
     
     public Player() {
         this.state = State.CONNECTING;
@@ -48,7 +47,7 @@ public class Player extends Agent {
                 connect();
                 break;
             case CONNECTINGSENT: break;
-            case WAITING:
+            case WAITING: break;
 
         }
 
@@ -70,6 +69,26 @@ public class Player extends Agent {
                     switch(msg.getPerformative())
                     {
                         case ACLMessage.INFORM:
+
+                            if(msg.getContent().equals("O jogo pode começar?"))
+                            {
+                                Utils.sendMessage("Sim, estou pronto.",moderatorName, ACLMessage.INFORM,myAgent);
+                            }
+
+                            if(msg.getContent().equals(PlayerRole.Werewolf.name()))
+                            {
+                                role = PlayerRole.Werewolf;
+                                state = State.WAKE;
+                            }
+                            else if(msg.getContent().equals(PlayerRole.Villager.name()))
+                            {
+                                role = PlayerRole.Villager;
+                                state = state.WAKE;
+                            }
+
+
+
+
 
                             break;
                         case ACLMessage.PROPOSE:

@@ -2,6 +2,7 @@ package utils;
 
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
@@ -24,9 +25,15 @@ public class Utils {
     }
 
     static public void sendMessage(String message, AID destination, int type, Agent agent) {
-        ACLMessage msg = new ACLMessage(type);
-        msg.addReceiver(destination);
-        msg.setContent(message);
-        agent.send(msg);
+        agent.addBehaviour(new OneShotBehaviour() {
+                               @Override
+                               public void action() {
+                                   ACLMessage msg = new ACLMessage(type);
+                                   msg.addReceiver(destination);
+                                   msg.setContent(message);
+                                   agent.send(msg);
+                               }
+                           });
+
     }
 }
