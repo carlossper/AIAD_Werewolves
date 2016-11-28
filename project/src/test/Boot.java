@@ -26,7 +26,7 @@ public class Boot {
 			//gui
 			cc.createNewAgent("gui_watch", "jade.tools.rma.rma", null).start();
 			//sellers
-			cc.createNewAgent("mod", "agents.Moderator", new Object[] {6}).start();
+			cc.createNewAgent("mod", "agents.Moderator", new Object[] {"6"}).start();
 			Thread.sleep(2000);
 			//buyers
 			cc.createNewAgent("play1", "agents.Player", null).start();
