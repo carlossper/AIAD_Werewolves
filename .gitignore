@@ -4,4 +4,6 @@
 .settings
 APDescription.txt
 MTPs-Main-Container.txt
-project/out/production
+project/out/
+project/.idea
+project/out/
