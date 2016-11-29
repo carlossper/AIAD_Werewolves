@@ -26,15 +26,30 @@ public class Boot {
 			//gui
 			cc.createNewAgent("gui_watch", "jade.tools.rma.rma", null).start();
 			//sellers
-			cc.createNewAgent("mod", "agents.Moderator", new Object[] {"6"}).start();
-			Thread.sleep(2000);
+			long sleepTime = 500;
+			Thread.sleep(sleepTime);
+			cc.createNewAgent("mod", "agents.Moderator", new Object[] {"10"}).start();
+			Thread.sleep(sleepTime);
 			//buyers
 			cc.createNewAgent("play1", "agents.Player", null).start();
+			Thread.sleep(sleepTime);
 			cc.createNewAgent("play2", "agents.Player", null).start();
+			Thread.sleep(sleepTime);
 			cc.createNewAgent("play3", "agents.Player", null).start();
+			Thread.sleep(sleepTime);
 			cc.createNewAgent("play4", "agents.Player", null).start();
+			Thread.sleep(sleepTime);
 			cc.createNewAgent("play5", "agents.Player", null).start();
+			Thread.sleep(sleepTime);
 			cc.createNewAgent("play6", "agents.Player", null).start();
+			Thread.sleep(sleepTime);
+			cc.createNewAgent("play7", "agents.Player", null).start();
+			Thread.sleep(sleepTime);
+			cc.createNewAgent("play8", "agents.Player", null).start();
+			Thread.sleep(sleepTime);
+			cc.createNewAgent("play9", "agents.Player", null).start();
+			Thread.sleep(sleepTime);
+			cc.createNewAgent("play10", "agents.Player", null).start();
 		} catch (StaleProxyException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

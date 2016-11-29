@@ -15,25 +15,27 @@ import utils.*;
 /**
  * Created by ruben on 10/11/2016.
  */
+
+
 public class Moderator extends Agent{
     private int numberPlayers;
-    private ServiceDescription serviceDescription;
+
     private State state;
-	//private ArrayList<User> users;
     private ConcurrentHashMap<AID,User> users;
     private Random randomGenerator = new Random();
     
     public Moderator() {
 		users = new ConcurrentHashMap<AID,User>();
         this.state = State.REGISTER;
-        this.serviceDescription = new ServiceDescription();
+
     }
 
     @Override
     protected void setup() {
+
         Object[] args = getArguments();
         this.numberPlayers = Integer.parseInt((String)args[0]);
-        System.out.println(numberPlayers);
+        System.out.println("Venham jogar Werewolves of Miller's Hollow!!!! São precisos " + this.numberPlayers + " jogadores!" );
         addBehaviour(new CyclicBehaviour() {
             @Override
             public void action() {
@@ -55,7 +57,7 @@ public class Moderator extends Agent{
                         case ACLMessage.INFORM:
                             if(msg.getContent().equals("Estabelecer Ligacao"))
                             {
-                                System.out.println("Pedido de ligacao recebido.");
+                               // System.out.println("Pedido de ligacao recebido.");
                                 Utils.sendMessage("Quer jogar Werewolf?",msg.getSender(),ACLMessage.PROPOSE,myAgent);
                             }
 
@@ -71,15 +73,15 @@ public class Moderator extends Agent{
                             if(state == State.STARTING) {
                                 if (msg.getContent().equals("Aceito Ligacao")) ;
                                 {
-                                    System.out.println("resposta de aceitação recebido");
+                                  //  System.out.println("resposta de aceitação recebido");
                                     users.put(msg.getSender(), new User(msg.getSender()));
-                                    System.out.println(users.size());
+                                    System.out.println("Jogador " + msg.getSender().getLocalName() + " conectado.");
 
 
                                     if (users.size() == numberPlayers)
                                     {
                                         state = State.ALLCONNECTED;
-                                        sendStartGameMessage();
+                                        sendMessageToAllPlayers("O jogo pode começar?");
                                         numberPlayers = 0;
                                     }
                                 }
@@ -90,7 +92,7 @@ public class Moderator extends Agent{
                 }
                 else
                     block();
-                System.out.println("numPlayers: " + numberPlayers);
+
             }
         });
     }
@@ -112,15 +114,16 @@ public class Moderator extends Agent{
 
     public void serviceConfig()
     {
-        this.serviceDescription.setType("moderator");
-        this.serviceDescription.setName(this.getLocalName());
-        Utils.registerService(this.serviceDescription,this);
+        ServiceDescription serviceDescription = new ServiceDescription();
+        serviceDescription.setType("moderator");
+        serviceDescription.setName(this.getLocalName());
+        Utils.registerService(serviceDescription,this);
         state = State.STARTING;
     }
 
     private void generatePlayerTypes() {
 
-        System.out.println("chegou");
+        System.out.println("GeneratePlayerTypes().");
         //generate villagers
         //generate villagers
         for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
@@ -128,28 +131,34 @@ public class Moderator extends Agent{
             entry.getValue().setRole(PlayerRole.Villager);
         }
     	//generate wolves - 30% of players
-    	/*int rand=0;
-    	for(int i=0; i<0.3*numbersPlayers; i++) {
-    		rand = randomGenerator.nextInt(numbersPlayers);
-    		playerRoles[rand]=PlayerRole.Werewolf;
-    	}*/
+    	int contador=0;
+        for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
+            if(randomGenerator.nextInt(10 ) < 3 && contador < this.numberPlayers * 0.3)
+            {
+                entry.getValue().setRole(PlayerRole.Werewolf);
+                contador++;
+            }
+        }
     	
-    	/*//generate fortune_teller - 1
-    	do {
-    		rand = randomGenerator.nextInt(numbersPlayers);
-    		if(playerRoles[rand]!=PlayerRole.Werewolf) playerRoles[rand]=PlayerRole.FortuneTeller;
-    	}while(playerRoles[rand]!=PlayerRole.FortuneTeller);
-    	*/
-    	for(int i=0;i<users.size(); i++) {
-    		System.out.println("Type[" + i + "]:" + users.get(i).getRole());
-    	}
+
+
+
+    	/*for(ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
+    		System.out.println("O jogador" + entry.getValue().getName().getLocalName() + " tem o papel de " + entry.getValue().getRole() + ".");
+    	}*/
+        for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
+            User user = entry.getValue();
+
+            Utils.sendMessage(user.getRole().name(),user.getName(),ACLMessage.INFORM,this);
+        }
+
     	state  = State.GAMEON;
     }
 
-    private void sendStartGameMessage() {
+    private void sendMessageToAllPlayers(String message) {
         for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
             AID name = entry.getKey();
-            Utils.sendMessage("O jogo pode começar?",name,ACLMessage.INFORM,this);
+            Utils.sendMessage(message,name,ACLMessage.INFORM,this);
         }
     }
 }

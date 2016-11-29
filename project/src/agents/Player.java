@@ -48,6 +48,13 @@ public class Player extends Agent {
                 break;
             case CONNECTINGSENT: break;
             case WAITING: break;
+            case WAKE:
+                System.out.println(this.getLocalName() + " o meu role é " + role);
+                state = State.GAMEON;
+                break;
+            case GAMEON:
+                break;
+
 
         }
 
@@ -95,7 +102,7 @@ public class Player extends Agent {
 
                             if(msg.getContent().equals("Quer jogar Werewolf?"))
                             {
-                                System.out.println("Proposta para jogar reebida");
+                               // System.out.println("Proposta para jogar reebida");
                                 acceptConnected();
                             }
                             break;
@@ -135,7 +142,7 @@ public class Player extends Agent {
 
     private void acceptConnected()
     {
-        System.out.println("Enviou mensagem para aceitar jogar.");
+        //System.out.println("Enviou mensagem para aceitar jogar.");
         Utils.sendMessage("Aceito Ligacao",moderatorName,ACLMessage.ACCEPT_PROPOSAL,this);
         state = State.WAITING;
     }
