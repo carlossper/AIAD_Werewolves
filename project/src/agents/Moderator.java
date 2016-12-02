@@ -1,6 +1,7 @@
 package agents;
 
-import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -97,8 +98,6 @@ public class Moderator extends Agent{
         });
     }
 
-
-
     private void update() {
         switch (state)
         {
@@ -125,27 +124,27 @@ public class Moderator extends Agent{
 
         System.out.println("GeneratePlayerTypes().");
         //generate villagers
-        //generate villagers
         for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
 
             entry.getValue().setRole(PlayerRole.Villager);
         }
+        
     	//generate wolves - 30% of players
-    	int contador=0;
-        for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
-            if(randomGenerator.nextInt(10 ) < 3 && contador < this.numberPlayers * 0.3)
-            {
-                entry.getValue().setRole(PlayerRole.Werewolf);
-                contador++;
-            }
-        }
-    	
-
-
-
-    	/*for(ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
-    		System.out.println("O jogador" + entry.getValue().getName().getLocalName() + " tem o papel de " + entry.getValue().getRole() + ".");
-    	}*/
+    	for(int i=0; i < Math.floor(this.numberPlayers * 0.3) ; i++) {
+    		int rand = randomGenerator.nextInt(numberPlayers);
+    		Iterator<Entry<AID,User>> it = users.entrySet().iterator();
+    		Entry<AID,User> entry = it.next();
+    		for(int j=1; j < rand; j++) {
+    			entry = it.next();
+    		}
+    		if(entry.getValue().getRole().equals(PlayerRole.Werewolf)) {
+    			i--;
+    			continue;
+    		}
+    		else entry.getValue().setRole(PlayerRole.Werewolf);
+    	}    	
+        
+    	//send roles
         for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
             User user = entry.getValue();
 

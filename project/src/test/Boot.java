@@ -12,6 +12,14 @@ public class Boot {
 	//static public ArrayList<AID> playerAgents = new ArrayList<AID>();
 	
 	public static void main(String[] args) {
+		
+		if(args.length<1) {
+			System.out.println("Missing arg[0]=number of players");
+			return;
+		}
+		
+		int numPlayers = Integer.parseInt(args[0]);
+		
 		// Get a hold on JADE runtime
 		Runtime rt = Runtime.instance();
 		// Create a default profile
@@ -23,33 +31,20 @@ public class Boot {
 		// and pass it a reference to an Object
 
 		try {
+			
 			//gui
 			cc.createNewAgent("gui_watch", "jade.tools.rma.rma", null).start();
 			//sellers
 			long sleepTime = 500;
 			Thread.sleep(sleepTime);
-			cc.createNewAgent("mod", "agents.Moderator", new Object[] {"10"}).start();
+			cc.createNewAgent("mod", "agents.Moderator", new Object[] {args[0]}).start();
 			Thread.sleep(sleepTime);
 			//buyers
-			cc.createNewAgent("play1", "agents.Player", null).start();
-			Thread.sleep(sleepTime);
-			cc.createNewAgent("play2", "agents.Player", null).start();
-			Thread.sleep(sleepTime);
-			cc.createNewAgent("play3", "agents.Player", null).start();
-			Thread.sleep(sleepTime);
-			cc.createNewAgent("play4", "agents.Player", null).start();
-			Thread.sleep(sleepTime);
-			cc.createNewAgent("play5", "agents.Player", null).start();
-			Thread.sleep(sleepTime);
-			cc.createNewAgent("play6", "agents.Player", null).start();
-			Thread.sleep(sleepTime);
-			cc.createNewAgent("play7", "agents.Player", null).start();
-			Thread.sleep(sleepTime);
-			cc.createNewAgent("play8", "agents.Player", null).start();
-			Thread.sleep(sleepTime);
-			cc.createNewAgent("play9", "agents.Player", null).start();
-			Thread.sleep(sleepTime);
-			cc.createNewAgent("play10", "agents.Player", null).start();
+			
+			for(int i=0; i<numPlayers; i++) {
+				cc.createNewAgent("play"+i, "agents.Player", null).start();
+				Thread.sleep(sleepTime);
+			}
 		} catch (StaleProxyException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
