@@ -90,7 +90,7 @@ public class Player extends Agent {
                             else if(msg.getContent().equals(PlayerRole.Villager.name()))
                             {
                                 role = PlayerRole.Villager;
-                                state = state.WAKE;
+                                state = State.WAKE;
                             }
 
 
