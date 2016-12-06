@@ -19,7 +19,7 @@ import utils.*;
 
 
 public class Moderator extends Agent{
-    private int numberPlayers;
+    private int numberPlayers = -1;
 
     private State state;
     private ConcurrentHashMap<AID,User> users;
@@ -30,12 +30,30 @@ public class Moderator extends Agent{
         this.state = State.REGISTER;
 
     }
+    
+    public Moderator(int numPlayers) {
+    	numberPlayers=numPlayers;
+		users = new ConcurrentHashMap<AID,User>();
+        this.state = State.REGISTER;
+    }
 
+    public State getModState() {
+    	return state;
+    }
+    
+    public User getUser(AID key) {
+    	return users.get(key);
+    }
+    
+    public ConcurrentHashMap<AID,User> getUsers() {
+    	return users;
+    }
+    
     @Override
     protected void setup() {
 
         Object[] args = getArguments();
-        this.numberPlayers = Integer.parseInt((String)args[0]);
+        if(args!=null) this.numberPlayers = Integer.parseInt((String)args[0]);
         System.out.println("Venham jogar Werewolves of Miller's Hollow!!!! São precisos " + this.numberPlayers + " jogadores!" );
         addBehaviour(new CyclicBehaviour() {
             @Override
