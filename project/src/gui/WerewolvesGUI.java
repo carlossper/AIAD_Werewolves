@@ -1,33 +1,27 @@
 package gui;
 
 import java.awt.EventQueue;
-import java.awt.Label;
 import java.util.ArrayList;
-import java.util.concurrent.ConcurrentHashMap;
-
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 
-import jade.core.AID;
-import jade.core.Agent;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
-import users.User;
 import agents.*;
-import java.awt.BorderLayout;
+import java.awt.GridLayout;
 
 public class WerewolvesGUI {
 
-	private JFrame frame;
+	private JFrame frmWerewolves;
 	private static int numberPlayers;
 	private static NumPlayersSelector numSelDialog;
-	private Agent modAgent;
-	//private ArrayList<AID> playerAgents = new ArrayList<AID>();
-	
-	JLabel label;
+	private Moderator modAgent;
+	private ArrayList<Player> playerAgents = new ArrayList<Player>();
+	private ArrayList<ArrayList<JPanel>> gridCells = new ArrayList<ArrayList<JPanel>>();
 	
 	/**
 	 * Launch the application.
@@ -37,20 +31,16 @@ public class WerewolvesGUI {
 			public void run() {
 				try {
 					WerewolvesGUI window = new WerewolvesGUI();
-					//window.frame.setEnabled(false);
-					window.frame.setVisible(true);
+					window.frmWerewolves.setEnabled(false);
+					
+					window.frmWerewolves.setVisible(true);
 					numSelDialog.setVisible(true);
 					numberPlayers=numSelDialog.getValue();
+					
 					window.createAgents();
+					window.initializeWithAgents();
 					
-					ConcurrentHashMap<AID,User> users = ((Moderator)window.modAgent).getUsers();
-					
-					String text="";
-					for(User user : users.values()) {
-						text+=user.getName().getLocalName()+": "+user.getRole().name()+"\n";
-					}
-					window.label.setText(text);
-					//window.frame.setEnabled(true);
+					window.frmWerewolves.setEnabled(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -71,18 +61,30 @@ public class WerewolvesGUI {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		frame = new JFrame();
-		frame.setBounds(100, 100, 450, 300);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frmWerewolves = new JFrame();
+		frmWerewolves.setTitle("Werewolves of Miller's Hollow");
+		frmWerewolves.setResizable(false);
+		frmWerewolves.setBounds(100, 100, 520, 205);
+		frmWerewolves.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	}
+	
+	private void initializeWithAgents() {
+		frmWerewolves.setBounds(100, 100, 520, 100+(numberPlayers*100/5)+((numberPlayers/5)+1)*5);
+		frmWerewolves.getContentPane().setLayout(new GridLayout((numberPlayers/5)+1, 5, 5, 5));
+		for(int i=0; i<(numberPlayers/5)+1; i++) {
+			ArrayList<JPanel> line = new ArrayList<JPanel>();
+			for(int j=0; j <5; j++) {
+				JPanel panel = new JPanel();
+				line.add(panel);
+				frmWerewolves.getContentPane().add(panel);
+			}
+			gridCells.add(line);
+		}
 		
-		label = new JLabel("lol");
-		frame.getContentPane().add(label, BorderLayout.CENTER);
+		gridCells.get(0).get(2).add(new JLabel(modAgent.getAID().getLocalName()+":"+modAgent.getModState()));
 	}
 
 	private void createAgents() {
-		
-		modAgent = new agents.Moderator(numberPlayers);
-		
 		// Get a hold on JADE runtime
 		Runtime rt = Runtime.instance();
 		// Create a default profile
@@ -91,29 +93,25 @@ public class WerewolvesGUI {
 		// main container (i.e. on this host, port 1099)
 		ContainerController cc = rt.createMainContainer(p);
 		
-		try {
-			//gui
-			cc.createNewAgent("gui_watch", "jade.tools.rma.rma", null).start();
-			
+		try {			
 			//mod
+			modAgent = new agents.Moderator(numberPlayers);
 			cc.acceptNewAgent("mod", modAgent).start();
-			//cc.createNewAgent("mod", "agents.Moderator", new Object[] {""+numberPlayers}).start();
-
-			//players
-			Thread.sleep(500);
-			for(int i=0; i<numberPlayers; i++) {
-				cc.createNewAgent("play"+i, "agents.Player", null).start();
-			}
 			
+			//players
+			while(modAgent.getModState()==State.REGISTER){
+				System.out.print(""); //DO NOT DELETE THIS LINE!!!
+			}
+			for(int i=0; i<numberPlayers; i++) {
+				Player playerAgent = new Player();
+				cc.acceptNewAgent("play"+i, playerAgent).start();
+				playerAgents.add(playerAgent);
+			}
 		} catch (StaleProxyException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
 	}
-	
 	
 }
