@@ -3,6 +3,7 @@ package agents;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 import jade.core.AID;
@@ -76,8 +77,8 @@ public class Moderator extends Agent{
                         case ACLMessage.INFORM:
                             if(msg.getContent().equals("Estabelecer Ligacao"))
                             {
-                               // System.out.println("Pedido de ligacao recebido.");
-                                Utils.sendMessage("Quer jogar Werewolf?",msg.getSender(),ACLMessage.PROPOSE,myAgent);
+                                //System.out.println("Pedido de ligacao recebido.");
+                                Utils.sendMessage("Quer jogar Werewolf?",msg.getSender(),ACLMessage.PROPOSE,myAgent, null);
                             }
 
                             if(msg.getContent().equals("Sim, estou pronto."))
@@ -99,8 +100,20 @@ public class Moderator extends Agent{
 
                                     if (users.size() == numberPlayers)
                                     {
+                                        System.out.println("ALLCONNECTED");
                                         state = State.ALLCONNECTED;
-                                        sendMessageToAllPlayers("O jogo pode começar?");
+
+                                        //send roles
+                                        String names = new String();
+                                        for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
+                                           names += entry.getKey().getLocalName()+ " ";
+
+                                        }
+
+
+
+
+                                        sendMessageToAllPlayers("comecar jogo " +  names, null);
                                         numberPlayers = 0;
                                     }
                                 }
@@ -125,6 +138,10 @@ public class Moderator extends Agent{
             case ALLCONNECTED:
                 if(numberPlayers == users.size())
                 generatePlayerTypes();
+                break;
+            case GAMESTARTING:
+
+
         }
 
     }
@@ -161,21 +178,32 @@ public class Moderator extends Agent{
     		}
     		else entry.getValue().setRole(PlayerRole.Werewolf);
     	}    	
-        
-    	//send roles
+
         for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
+
             User user = entry.getValue();
 
-            Utils.sendMessage(user.getRole().name(),user.getName(),ACLMessage.INFORM,this);
+            Utils.sendMessage(user.getRole().name(),user.getName(),ACLMessage.INFORM,this, null);
         }
 
-    	state  = State.GAMEON;
+
+    	state  = State.GAMESTARTING;
     }
 
-    private void sendMessageToAllPlayers(String message) {
+    private void sendMessageToAllPlayers(String message, Object contentObject) {
         for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
             AID name = entry.getKey();
-            Utils.sendMessage(message,name,ACLMessage.INFORM,this);
+            Utils.sendMessage(message,name,ACLMessage.INFORM,this, contentObject);
         }
+    }
+
+
+
+    private void informElimination(AID name)
+    {
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        msg.setContent("Eliminado");
+        msg.setSender(name);
+        this.send(msg);
     }
 }

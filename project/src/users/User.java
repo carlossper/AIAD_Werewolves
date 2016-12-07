@@ -11,6 +11,7 @@ public class User {
     private PlayerRole role;
     private Boolean alive = false;
 
+
     public User(AID name) {
         this.name = name;
     }
