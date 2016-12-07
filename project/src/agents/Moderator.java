@@ -100,7 +100,7 @@ public class Moderator extends Agent{
                                     if (users.size() == numberPlayers)
                                     {
                                         state = State.ALLCONNECTED;
-                                        sendMessageToAllPlayers("O jogo pode começar?");
+                                        sendMessageToAllPlayers("O jogo pode comecar?");
                                         numberPlayers = 0;
                                     }
                                 }
@@ -119,12 +119,42 @@ public class Moderator extends Agent{
     private void update() {
         switch (state)
         {
-            case REGISTER: this.serviceConfig();
+            case REGISTER: 
+            	this.serviceConfig();
                 break;
-            case STARTING: break;
+            case STARTING:
+            	break;
             case ALLCONNECTED:
                 if(numberPlayers == users.size())
-                generatePlayerTypes();
+                {
+                	generatePlayerRoles();
+                	// Check if this is right
+                    state = State.WEREWOLVES_VOTING;
+                }
+                break;
+            case WEREWOLVES_VOTING:
+            	for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet())
+            	{	
+            		if(entry.getValue().getRole().equals(PlayerRole.Werewolf))
+            		{
+            			// Sends message to werewolves
+            			AID dst = entry.getValue().getName();
+            			Utils.sendMessage("Votacao Werewolves", dst, ACLMessage.REQUEST, this);
+            		}
+                }
+            	// Change to proper state
+            	state = State.DAY_VOTING;
+            	break;
+            case DAY_VOTING:
+            	System.out.println();
+            	for(ConcurrentHashMap.Entry<AID, User> entry : users.entrySet())
+            	{
+            		AID dst = entry.getValue().getName();
+            		Utils.sendMessage("Votacao Geral", dst, ACLMessage.REQUEST, this);
+            	}
+            	// Change to proper state
+            	state = State.SLEEP;
+            	break;
         }
 
     }
@@ -138,9 +168,9 @@ public class Moderator extends Agent{
         state = State.STARTING;
     }
 
-    private void generatePlayerTypes() {
+    private void generatePlayerRoles() {
 
-        System.out.println("GeneratePlayerTypes().");
+        System.out.println("GeneratePlayerRoles().");
         //generate villagers
         for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
 

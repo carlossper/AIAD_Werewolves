@@ -46,7 +46,6 @@ public class Player extends Agent {
 
         receiveMessage();
     }
-
     private void update() {
 
         switch (state) {
@@ -60,13 +59,13 @@ public class Player extends Agent {
                 state = State.GAMEON;
                 break;
             case GAMEON:
+            	//switch role...
                 break;
 
 
         }
 
     }
-
 
     private void receiveMessage() {
 
@@ -84,43 +83,50 @@ public class Player extends Agent {
                     {
                         case ACLMessage.INFORM:
 
-                            if(msg.getContent().equals("O jogo pode começar?"))
+                            if(msg.getContent().equals("O jogo pode comecar?"))
                             {
                                 Utils.sendMessage("Sim, estou pronto.",moderatorName, ACLMessage.INFORM,myAgent);
+                                break;
                             }
-
                             if(msg.getContent().equals(PlayerRole.Werewolf.name()))
                             {
                                 role = PlayerRole.Werewolf;
                                 state = State.WAKE;
+                                break;
                             }
                             else if(msg.getContent().equals(PlayerRole.Villager.name()))
                             {
                                 role = PlayerRole.Villager;
                                 state = State.WAKE;
+                                break;
                             }
-
-
-
-
-
                             break;
+                        case ACLMessage.REQUEST:
+                        	
+                            if(msg.getContent().equals("Votacao Werewolves"))
+                            {
+                            	System.out.println("Propose vote for werewolves received!");
+                            	// Handling function for werwolves voting
+                            	break;
+                            }
+                            else if(msg.getContent().equals("Votacao Geral"));
+                            {
+                            	System.out.println("Propose vote general received!");
+                            	// Handling function for general voting 
+                            	
+                            }
+                        	break;
                         case ACLMessage.PROPOSE:
 
                             if(msg.getContent().equals("Quer jogar Werewolf?"))
                             {
-                               // System.out.println("Proposta para jogar reebida");
                                 acceptConnected();
                             }
                             break;
                     }
-
-
                 }
                 else
                     block();
-
-
             }
         });
     }
