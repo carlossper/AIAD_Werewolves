@@ -38,6 +38,7 @@ public class WerewolvesGUI {
 					numberPlayers=numSelDialog.getValue();
 					
 					window.createAgents();
+					Thread.sleep(500);
 					window.initializeWithAgents();
 					
 					window.frmWerewolves.setEnabled(true);
@@ -80,8 +81,18 @@ public class WerewolvesGUI {
 			}
 			gridCells.add(line);
 		}
+
+		//turn (day/night)
 		
-		gridCells.get(0).get(2).add(new JLabel(modAgent.getAID().getLocalName()+":"+modAgent.getModState()));
+		gridCells.get(0).get(2).add(new JLabel("<html>"+modAgent.getAID().getLocalName()+"<br>"+modAgent.getModState()+"</html>"));
+		for(int i=0; i<(numberPlayers/5); i++) {
+			for(int j=0; j<5; j++) {
+				gridCells.get(1+i).get(j).add(new JLabel("<html>"+playerAgents.get(i*5+j).getAID().getLocalName()+"-"+playerAgents.get(i*5+j).getPlayerRole()+"<br>"+playerAgents.get(i*5+j).getPlayerState()+"</html>"));
+			}
+		}
+		//player1 state
+		//player2 state
+		//playerN state
 	}
 
 	private void createAgents() {

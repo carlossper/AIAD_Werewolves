@@ -27,7 +27,14 @@ public class Player extends Agent {
 
     }
 
-
+    public State getPlayerState() {
+    	return state;
+    }
+    
+    public PlayerRole getPlayerRole() {
+    	return role;
+    }
+    
     protected void setup() {
         this.serviceConfig();
         addBehaviour(new CyclicBehaviour() {
@@ -117,9 +124,6 @@ public class Player extends Agent {
             }
         });
     }
-
-
-
 
     private void serviceConfig() {
         this.serviceDescription.setType("moderator");
