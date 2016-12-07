@@ -3,6 +3,7 @@ package agents;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Random;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 import jade.core.AID;
@@ -76,8 +77,8 @@ public class Moderator extends Agent{
                         case ACLMessage.INFORM:
                             if(msg.getContent().equals("Estabelecer Ligacao"))
                             {
-                               // System.out.println("Pedido de ligacao recebido.");
-                                Utils.sendMessage("Quer jogar Werewolf?",msg.getSender(),ACLMessage.PROPOSE,myAgent);
+                                //System.out.println("Pedido de ligacao recebido.");
+                                Utils.sendMessage("Quer jogar Werewolf?",msg.getSender(),ACLMessage.PROPOSE,myAgent, null);
                             }
 
                             if(msg.getContent().equals("Sim, estou pronto."))
@@ -86,8 +87,6 @@ public class Moderator extends Agent{
                                numberPlayers++;
                             }
                             break;
-
-
                         case ACLMessage.ACCEPT_PROPOSAL:
                             if(state == State.STARTING) {
                                 if (msg.getContent().equals("Aceito Ligacao")) ;
@@ -99,14 +98,22 @@ public class Moderator extends Agent{
 
                                     if (users.size() == numberPlayers)
                                     {
+                                        System.out.println("ALLCONNECTED");
                                         state = State.ALLCONNECTED;
-                                        sendMessageToAllPlayers("O jogo pode comecar?");
+
+                                        //send roles
+                                        String names = new String();
+                                        for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
+                                           names += entry.getKey().getLocalName()+ " ";
+
+                                        }
+
+                                        sendMessageToAllPlayers("comecar jogo " +  names, null, ACLMessage.INFORM);
                                         numberPlayers = 0;
                                     }
                                 }
                             }
                             break;
-
                     }
                 }
                 else
@@ -139,7 +146,7 @@ public class Moderator extends Agent{
             		{
             			// Sends message to werewolves
             			AID dst = entry.getValue().getName();
-            			Utils.sendMessage("Votacao Werewolves", dst, ACLMessage.REQUEST, this);
+            			Utils.sendMessage("Votacao Werewolves", dst, ACLMessage.REQUEST, this, null);
             		}
                 }
             	// Change to proper state
@@ -147,15 +154,14 @@ public class Moderator extends Agent{
             	break;
             case DAY_VOTING:
             	System.out.println();
-            	for(ConcurrentHashMap.Entry<AID, User> entry : users.entrySet())
-            	{
-            		AID dst = entry.getValue().getName();
-            		Utils.sendMessage("Votacao Geral", dst, ACLMessage.REQUEST, this);
-            	}
+            	this.sendMessageToAllPlayers("Votacao Geral", null, ACLMessage.REQUEST);
+
             	// Change to proper state
             	state = State.SLEEP;
             	break;
-        }
+            case GAMESTARTING:
+            	break;
+            	}
 
     }
 
@@ -191,21 +197,32 @@ public class Moderator extends Agent{
     		}
     		else entry.getValue().setRole(PlayerRole.Werewolf);
     	}    	
-        
-    	//send roles
+
         for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
+
             User user = entry.getValue();
 
-            Utils.sendMessage(user.getRole().name(),user.getName(),ACLMessage.INFORM,this);
+            Utils.sendMessage(user.getRole().name(),user.getName(),ACLMessage.INFORM,this, null);
         }
 
-    	state  = State.GAMEON;
+
+    	state  = State.GAMESTARTING;
     }
 
-    private void sendMessageToAllPlayers(String message) {
+    private void sendMessageToAllPlayers(String message, Object contentObject, int type) {
         for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
             AID name = entry.getKey();
-            Utils.sendMessage(message,name,ACLMessage.INFORM,this);
+            Utils.sendMessage(message,name, type,this, contentObject);
         }
+    }
+
+
+
+    private void informElimination(AID name)
+    {
+        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+        msg.setContent("Eliminado");
+        msg.setSender(name);
+        this.send(msg);
     }
 }

@@ -9,7 +9,10 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 import utils.*;
+
+import java.util.Vector;
 
 
 /**
@@ -20,11 +23,13 @@ public class Player extends Agent {
     protected State state;
     private AID moderatorName;
     private PlayerRole role;
-    
+    private KnowledgeBase knowledgeBase;
+
+
     public Player() {
         this.state = State.CONNECTING;
         this.serviceDescription = new ServiceDescription();
-
+        this.knowledgeBase = new KnowledgeBase();
     }
 
     public State getPlayerState() {
@@ -45,6 +50,7 @@ public class Player extends Agent {
         });
 
         receiveMessage();
+
     }
     private void update() {
 
@@ -82,12 +88,14 @@ public class Player extends Agent {
                     switch(msg.getPerformative())
                     {
                         case ACLMessage.INFORM:
-
-                            if(msg.getContent().equals("O jogo pode comecar?"))
+                            if(msg.getContent().startsWith("comecar jogo"))
                             {
-                                Utils.sendMessage("Sim, estou pronto.",moderatorName, ACLMessage.INFORM,myAgent);
-                                break;
-                            }
+                                String[] mensagems = msg.getContent().split(" ");
+                                knowledgeBase.saveopponents(mensagems, myAgent.getLocalName());
+
+                                Utils.sendMessage("Sim, estou pronto.",moderatorName, ACLMessage.INFORM,myAgent, null);
+
+                            }                            
                             if(msg.getContent().equals(PlayerRole.Werewolf.name()))
                             {
                                 role = PlayerRole.Werewolf;
@@ -100,13 +108,15 @@ public class Player extends Agent {
                                 state = State.WAKE;
                                 break;
                             }
+                            if(msg.getContent().equals("Eliminado"))
+                                doDelete();
                             break;
                         case ACLMessage.REQUEST:
                         	
                             if(msg.getContent().equals("Votacao Werewolves"))
                             {
                             	System.out.println("Propose vote for werewolves received!");
-                            	// Handling function for werwolves voting
+                            	// Handling function for werewolves voting
                             	break;
                             }
                             else if(msg.getContent().equals("Votacao Geral"));
@@ -120,6 +130,7 @@ public class Player extends Agent {
 
                             if(msg.getContent().equals("Quer jogar Werewolf?"))
                             {
+                              //  System.out.println("Proposta para jogar recebida");
                                 acceptConnected();
                             }
                             break;
@@ -144,7 +155,8 @@ public class Player extends Agent {
     }
 
     private void connect() {
-        Utils.sendMessage("Estabelecer Ligacao",moderatorName, ACLMessage.INFORM,this);
+        //System.out.println("CONNECT: " + this.getLocalName());
+        Utils.sendMessage("Estabelecer Ligacao",moderatorName, ACLMessage.INFORM,this, null);
         state = State.CONNECTINGSENT;
 
 
@@ -153,7 +165,14 @@ public class Player extends Agent {
     private void acceptConnected()
     {
         //System.out.println("Enviou mensagem para aceitar jogar.");
-        Utils.sendMessage("Aceito Ligacao",moderatorName,ACLMessage.ACCEPT_PROPOSAL,this);
+        Utils.sendMessage("Aceito Ligacao",moderatorName,ACLMessage.ACCEPT_PROPOSAL,this, null
+        );
         state = State.WAITING;
+    }
+
+    @Override
+    protected void takeDown() {
+        System.out.println(this.getLocalName() +" foi terminado.");
+
     }
 }
