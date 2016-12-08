@@ -24,7 +24,7 @@ import utils.*;
 public class Moderator extends Agent{
     private int numberPlayers = -1;
 
-    private State state;
+    private State state = State.REGISTER;
     private ConcurrentHashMap<AID,User> users;
     private Random randomGenerator = new Random();
     
@@ -33,14 +33,11 @@ public class Moderator extends Agent{
     
     public Moderator() {
 		users = new ConcurrentHashMap<AID,User>();
-		setModState(State.REGISTER);
-
     }
     
     public Moderator(int numPlayers) {
     	numberPlayers=numPlayers;
 		users = new ConcurrentHashMap<AID,User>();
-        setModState(State.REGISTER);
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -53,7 +50,7 @@ public class Moderator extends Agent{
     private void setModState(State newS) {
     	State oldS=state;
     	state = newS;
-    	this.pcs.firePropertyChange("state", oldS, state);
+    	this.pcs.firePropertyChange("modState", oldS, state);
     }
     
     public User getUser(AID key) {

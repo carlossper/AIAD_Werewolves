@@ -2,6 +2,8 @@ package gui;
 
 import java.awt.EventQueue;
 import java.util.ArrayList;
+import java.util.HashMap;
+
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -24,6 +26,7 @@ public class WerewolvesGUI {
 	private Moderator modAgent;
 	private ArrayList<Player> playerAgents = new ArrayList<Player>();
 	private ArrayList<ArrayList<JPanel>> gridCells = new ArrayList<ArrayList<JPanel>>();
+	private HashMap<String, JPanel> playersPanels = new HashMap<String, JPanel>();
 	
 	/**
 	 * Launch the application.
@@ -89,7 +92,7 @@ public class WerewolvesGUI {
 		
 		//moderator
 		gridCells.get(0).get(2).add(new JLabel("<html>"+modAgent.getAID().getLocalName()+"<br>"+modAgent.getModState()+"</html>"));
-		frmWerewolves.addPropertyChangeListener("state", new PropertyChangeListener() {
+		frmWerewolves.addPropertyChangeListener("modState", new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
 				((JLabel)gridCells.get(0).get(2).getComponent(0)).setText(e.getNewValue().toString());
@@ -99,11 +102,17 @@ public class WerewolvesGUI {
 		for(int i=0; i<(numberPlayers/5); i++) {
 			for(int j=0; j<5; j++) {
 				gridCells.get(1+i).get(j).add(new JLabel("<html>"+playerAgents.get(i*5+j).getAID().getLocalName()+"-"+playerAgents.get(i*5+j).getPlayerRole()+"<br>"+playerAgents.get(i*5+j).getPlayerState()+"</html>"));
+				playersPanels.put(playerAgents.get(i*5+j).getAID().getLocalName(), gridCells.get(1+i).get(j));
+				frmWerewolves.addPropertyChangeListener("playerState@"+playerAgents.get(i*5+j).getAID().getLocalName(), new PropertyChangeListener() {
+					@Override
+					public void propertyChange(PropertyChangeEvent e) {
+						JPanel playerPanel = playersPanels.get(e.getPropertyName().substring(12));
+						((JLabel)playerPanel.getComponent(0)).setText(e.getNewValue().toString());
+						playerPanel.repaint();
+					}
+				});
 			}
 		}
-		//player1 state
-		//player2 state
-		//playerN state
 	}
 
 	private void createAgents() {

@@ -12,6 +12,8 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
 import utils.*;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.Vector;
 
 
@@ -20,20 +22,30 @@ import java.util.Vector;
  */
 public class Player extends Agent {
     protected ServiceDescription serviceDescription;
-    protected State state;
+    protected State state = State.CONNECTING;
     private AID moderatorName;
     private PlayerRole role;
     private KnowledgeBase knowledgeBase;
 
+    //property change events
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     public Player() {
-        this.state = State.CONNECTING;
         this.serviceDescription = new ServiceDescription();
         this.knowledgeBase = new KnowledgeBase();
     }
 
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        this.pcs.addPropertyChangeListener(listener);
+    }
+    
     public State getPlayerState() {
     	return state;
+    }
+    private void setPlayerState(State newS) {
+    	State oldS = state;
+    	state = newS;
+    	this.pcs.firePropertyChange("playerState@"+getAID().getLocalName(), oldS, state);
     }
     
     public PlayerRole getPlayerRole() {
@@ -62,7 +74,7 @@ public class Player extends Agent {
             case WAITING: break;
             case WAKE:
                 System.out.println(this.getLocalName() + " o meu role é " + role);
-                state = State.GAMEON;
+                setPlayerState(State.GAMEON);
                 break;
             case GAMEON:
             	//switch role...
@@ -99,13 +111,13 @@ public class Player extends Agent {
                             if(msg.getContent().equals(PlayerRole.Werewolf.name()))
                             {
                                 role = PlayerRole.Werewolf;
-                                state = State.WAKE;
+                                setPlayerState(State.WAKE);
                                 break;
                             }
                             else if(msg.getContent().equals(PlayerRole.Villager.name()))
                             {
                                 role = PlayerRole.Villager;
-                                state = State.WAKE;
+                                setPlayerState(State.WAKE);
                                 break;
                             }
                             if(msg.getContent().equals("Eliminado"))
@@ -157,7 +169,7 @@ public class Player extends Agent {
     private void connect() {
         //System.out.println("CONNECT: " + this.getLocalName());
         Utils.sendMessage("Estabelecer Ligacao",moderatorName, ACLMessage.INFORM,this, null);
-        state = State.CONNECTINGSENT;
+        setPlayerState(State.CONNECTINGSENT);
 
 
     }
@@ -167,7 +179,7 @@ public class Player extends Agent {
         //System.out.println("Enviou mensagem para aceitar jogar.");
         Utils.sendMessage("Aceito Ligacao",moderatorName,ACLMessage.ACCEPT_PROPOSAL,this, null
         );
-        state = State.WAITING;
+        setPlayerState(State.WAITING);
     }
 
     @Override
