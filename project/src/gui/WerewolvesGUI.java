@@ -13,6 +13,8 @@ import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
 import agents.*;
 import java.awt.GridLayout;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 
 public class WerewolvesGUI {
 
@@ -38,7 +40,7 @@ public class WerewolvesGUI {
 					numberPlayers=numSelDialog.getValue();
 					
 					window.createAgents();
-					Thread.sleep(500);
+					Thread.sleep(250);
 					window.initializeWithAgents();
 					
 					window.frmWerewolves.setEnabled(true);
@@ -83,8 +85,17 @@ public class WerewolvesGUI {
 		}
 
 		//turn (day/night)
+		gridCells.get(0).get(1).add(new JLabel("Night"));
 		
+		//moderator
 		gridCells.get(0).get(2).add(new JLabel("<html>"+modAgent.getAID().getLocalName()+"<br>"+modAgent.getModState()+"</html>"));
+		frmWerewolves.addPropertyChangeListener("state", new PropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent e) {
+				((JLabel)gridCells.get(0).get(2).getComponent(0)).setText(e.getNewValue().toString());
+				((JLabel)gridCells.get(0).get(2).getComponent(0)).repaint();
+			}
+		});
 		for(int i=0; i<(numberPlayers/5); i++) {
 			for(int j=0; j<5; j++) {
 				gridCells.get(1+i).get(j).add(new JLabel("<html>"+playerAgents.get(i*5+j).getAID().getLocalName()+"-"+playerAgents.get(i*5+j).getPlayerRole()+"<br>"+playerAgents.get(i*5+j).getPlayerState()+"</html>"));

@@ -1,5 +1,7 @@
 package agents;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -26,20 +28,32 @@ public class Moderator extends Agent{
     private ConcurrentHashMap<AID,User> users;
     private Random randomGenerator = new Random();
     
+    //property change events
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+    
     public Moderator() {
 		users = new ConcurrentHashMap<AID,User>();
-        this.state = State.REGISTER;
+		setModState(State.REGISTER);
 
     }
     
     public Moderator(int numPlayers) {
     	numberPlayers=numPlayers;
 		users = new ConcurrentHashMap<AID,User>();
-        this.state = State.REGISTER;
+        setModState(State.REGISTER);
     }
 
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        this.pcs.addPropertyChangeListener(listener);
+    }
+    
     public State getModState() {
     	return state;
+    }
+    private void setModState(State newS) {
+    	State oldS=state;
+    	state = newS;
+    	this.pcs.firePropertyChange("state", oldS, state);
     }
     
     public User getUser(AID key) {
@@ -99,7 +113,7 @@ public class Moderator extends Agent{
                                     if (users.size() == numberPlayers)
                                     {
                                         System.out.println("ALLCONNECTED");
-                                        state = State.ALLCONNECTED;
+                                        setModState(State.ALLCONNECTED);
 
                                         //send roles
                                         String names = new String();
@@ -136,7 +150,8 @@ public class Moderator extends Agent{
                 {
                 	generatePlayerRoles();
                 	// Check if this is right
-                    state = State.WEREWOLVES_VOTING;
+                	setModState(State.WEREWOLVES_VOTING);
+                    
                 }
                 break;
             case WEREWOLVES_VOTING:
@@ -150,14 +165,14 @@ public class Moderator extends Agent{
             		}
                 }
             	// Change to proper state
-            	state = State.DAY_VOTING;
+            	setModState(State.DAY_VOTING);
             	break;
             case DAY_VOTING:
             	System.out.println();
             	this.sendMessageToAllPlayers("Votacao Geral", null, ACLMessage.REQUEST);
 
             	// Change to proper state
-            	state = State.SLEEP;
+            	setModState(State.SLEEP);            	
             	break;
             case GAMESTARTING:
             	break;
@@ -171,7 +186,7 @@ public class Moderator extends Agent{
         serviceDescription.setType("moderator");
         serviceDescription.setName(this.getLocalName());
         Utils.registerService(serviceDescription,this);
-        state = State.STARTING;
+        setModState(State.STARTING);
     }
 
     private void generatePlayerRoles() {
@@ -206,7 +221,7 @@ public class Moderator extends Agent{
         }
 
 
-    	state  = State.GAMESTARTING;
+        setModState(State.GAMESTARTING);
     }
 
     private void sendMessageToAllPlayers(String message, Object contentObject, int type) {
