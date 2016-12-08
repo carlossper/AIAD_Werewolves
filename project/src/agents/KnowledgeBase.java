@@ -37,16 +37,15 @@ public class KnowledgeBase {
     public void saveopponents(String[] opponentsNames, String localName)
     {
 
-        for(int i=2; i<opponentsNames.length; i++ )
+        for(int i=1; i<opponentsNames.length; i++ )
         {
-            if(!localName.equals(opponentsNames[i]))
             opponents.put(opponentsNames[i], new Opponent());
         }
-       String mensagem = "";
+        String mensagem = "";
         for (ConcurrentHashMap.Entry<String,Opponent> entry : opponents.entrySet() ) {
                 mensagem += entry.getKey()+ " ,";
         }
-        System.out.println(localName + "Os meus adversarios sao : " + mensagem);
+        System.out.println(localName + ": Os meus adversarios sao : " + mensagem);
     }
 
 }

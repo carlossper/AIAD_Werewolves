@@ -100,23 +100,23 @@ public class Player extends Agent {
                     switch(msg.getPerformative())
                     {
                         case ACLMessage.INFORM:
-                            if(msg.getContent().startsWith("comecar jogo"))
+                            if(msg.getContent().equals("comecar jogo"))
                             {
-                                String[] mensagems = msg.getContent().split(" ");
-                                knowledgeBase.saveopponents(mensagems, myAgent.getLocalName());
-
                                 Utils.sendMessage("Sim, estou pronto.",moderatorName, ACLMessage.INFORM,myAgent, null);
-
                             }                            
-                            if(msg.getContent().equals(PlayerRole.Werewolf.name()))
+                            if(msg.getContent().startsWith(PlayerRole.Werewolf.name()))
                             {
                                 role = PlayerRole.Werewolf;
+                                String[] mensagems = msg.getContent().split(" ");
+                                knowledgeBase.saveopponents(mensagems, myAgent.getLocalName());
                                 setPlayerState(State.WAKE);
                                 break;
                             }
-                            else if(msg.getContent().equals(PlayerRole.Villager.name()))
+                            else if(msg.getContent().startsWith(PlayerRole.Villager.name()))
                             {
                                 role = PlayerRole.Villager;
+                                String[] mensagems = msg.getContent().split(" ");
+                                knowledgeBase.saveopponents(mensagems, myAgent.getLocalName());
                                 setPlayerState(State.WAKE);
                                 break;
                             }

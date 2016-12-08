@@ -102,7 +102,7 @@ public class Moderator extends Agent{
                             if(state == State.STARTING) {
                                 if (msg.getContent().equals("Aceito Ligacao")) ;
                                 {
-                                  //  System.out.println("resposta de aceitação recebido");
+                                	//System.out.println("resposta de aceitação recebido");
                                     users.put(msg.getSender(), new User(msg.getSender()));
                                     System.out.println("Jogador " + msg.getSender().getLocalName() + " conectado.");
 
@@ -111,15 +111,8 @@ public class Moderator extends Agent{
                                     {
                                         System.out.println("ALLCONNECTED");
                                         setModState(State.ALLCONNECTED);
-
-                                        //send roles
-                                        String names = new String();
-                                        for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
-                                           names += entry.getKey().getLocalName()+ " ";
-
-                                        }
-
-                                        sendMessageToAllPlayers("comecar jogo " +  names, null, ACLMessage.INFORM);
+                                        
+                                        sendMessageToAllPlayers("comecar jogo", null, ACLMessage.INFORM);
                                         numberPlayers = 0;
                                     }
                                 }
@@ -127,9 +120,7 @@ public class Moderator extends Agent{
                             break;
                     }
                 }
-                else
-                    block();
-
+                else block();
             }
         });
     }
@@ -210,11 +201,19 @@ public class Moderator extends Agent{
     		else entry.getValue().setRole(PlayerRole.Werewolf);
     	}    	
 
+    	//send roles along with opponents
         for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
 
             User user = entry.getValue();
 
-            Utils.sendMessage(user.getRole().name(),user.getName(),ACLMessage.INFORM,this, null);
+            //send names
+            String names = new String();
+            for (ConcurrentHashMap.Entry<AID,User> entry2 : users.entrySet()) {
+               if(!entry.equals(entry2) && !(entry.getValue().getRole().equals(PlayerRole.Werewolf) && entry2.getValue().getRole().equals(PlayerRole.Werewolf)))
+            	   names += entry2.getKey().getLocalName()+ " ";
+            }
+            
+            Utils.sendMessage(user.getRole().name() + " " + names,user.getName(),ACLMessage.INFORM,this, null);
         }
 
 
@@ -225,6 +224,13 @@ public class Moderator extends Agent{
         for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
             AID name = entry.getKey();
             Utils.sendMessage(message,name, type,this, contentObject);
+        }
+    }
+    
+    private void sendMessageToOfSameRole(PlayerRole role, String message, Object contentObject, int type) {
+    	for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
+            if(entry.getValue().getRole().equals(role))
+            	Utils.sendMessage(message, entry.getKey(), type,this, contentObject);
         }
     }
 
