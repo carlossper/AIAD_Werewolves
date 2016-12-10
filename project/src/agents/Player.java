@@ -10,11 +10,14 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
+import users.Opponent;
 import utils.*;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.Vector;
+import java.util.ArrayList;
+import java.util.Random;
 
 
 /**
@@ -26,6 +29,9 @@ public class Player extends Agent {
     private AID moderatorName;
     private PlayerRole role;
     private KnowledgeBase knowledgeBase;
+    
+    // Random generator
+    private Random randomGenerator = new Random();
 
     //property change events
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
@@ -124,11 +130,18 @@ public class Player extends Agent {
                                 doDelete();
                             break;
                         case ACLMessage.REQUEST:
-                        	
                             if(msg.getContent().equals("Votacao Werewolves"))
                             {
+                            	// Voting
                             	System.out.println("Propose vote for werewolves received!");
-                            	// Handling function for werewolves voting
+                            	
+                            	ArrayList<Opponent> ops = knowledgeBase.getOpponents();
+                            	
+                            	int rand = randomGenerator.nextInt(ops.size());
+                            	String vote = "Vote "+ops.get(rand).getName();
+                            	
+                            	System.out.println("Vote sent! => "+vote);
+                            	Utils.sendMessage(vote, moderatorName, ACLMessage.INFORM, this.myAgent, null);
                             	break;
                             }
                             else if(msg.getContent().equals("Votacao Geral"));
@@ -139,7 +152,6 @@ public class Player extends Agent {
                             }
                         	break;
                         case ACLMessage.PROPOSE:
-
                             if(msg.getContent().equals("Quer jogar Werewolf?"))
                             {
                               //  System.out.println("Proposta para jogar recebida");
@@ -177,8 +189,7 @@ public class Player extends Agent {
     private void acceptConnected()
     {
         //System.out.println("Enviou mensagem para aceitar jogar.");
-        Utils.sendMessage("Aceito Ligacao",moderatorName,ACLMessage.ACCEPT_PROPOSAL,this, null
-        );
+        Utils.sendMessage("Aceito Ligacao",moderatorName,ACLMessage.ACCEPT_PROPOSAL,this, null);
         setPlayerState(State.WAITING);
     }
 
