@@ -1,22 +1,29 @@
 package gui;
 
-import java.awt.EventQueue;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
+import java.awt.EventQueue;
+import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
-import agents.*;
-import java.awt.GridLayout;
+import utils.PlayerRole;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.IOException;
+
+import agents.*;
 
 public class WerewolvesGUI {
 
@@ -25,8 +32,8 @@ public class WerewolvesGUI {
 	private static NumPlayersSelector numSelDialog;
 	private Moderator modAgent;
 	private ArrayList<Player> playerAgents = new ArrayList<Player>();
-	private ArrayList<ArrayList<JPanel>> gridCells = new ArrayList<ArrayList<JPanel>>();
-	private HashMap<String, JPanel> playersPanels = new HashMap<String, JPanel>();
+	private ArrayList<ArrayList<BackgroundPanel>> gridCells = new ArrayList<ArrayList<BackgroundPanel>>();
+	private HashMap<String, BackgroundPanel> playersPanels = new HashMap<String, BackgroundPanel>();
 	
 	/**
 	 * Launch the application.
@@ -78,9 +85,9 @@ public class WerewolvesGUI {
 		frmWerewolves.setBounds(100, 100, 520, 100+(numberPlayers*100/5)+((numberPlayers/5)+1)*5);
 		frmWerewolves.getContentPane().setLayout(new GridLayout((numberPlayers/5)+1, 5, 5, 5));
 		for(int i=0; i<(numberPlayers/5)+1; i++) {
-			ArrayList<JPanel> line = new ArrayList<JPanel>();
+			ArrayList<BackgroundPanel> line = new ArrayList<BackgroundPanel>();
 			for(int j=0; j <5; j++) {
-				JPanel panel = new JPanel();
+				BackgroundPanel panel = new BackgroundPanel((Image)null);
 				line.add(panel);
 				frmWerewolves.getContentPane().add(panel);
 			}
@@ -99,14 +106,27 @@ public class WerewolvesGUI {
 				((JLabel)gridCells.get(0).get(2).getComponent(0)).repaint();
 			}
 		});
+		BufferedImage villagerImg = null;
+		BufferedImage werewolfImg = null;
+		try {
+			villagerImg = ImageIO.read(new File("resources"+File.separator+"Villager.jpg"));
+			werewolfImg = ImageIO.read(new File("resources"+File.separator+"Werewolf.jpg"));
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		for(int i=0; i<(numberPlayers/5); i++) {
 			for(int j=0; j<5; j++) {
-				gridCells.get(1+i).get(j).add(new JLabel("<html>"+playerAgents.get(i*5+j).getAID().getLocalName()+"-"+playerAgents.get(i*5+j).getPlayerRole()+"<br>"+playerAgents.get(i*5+j).getPlayerState()+"</html>"));
-				playersPanels.put(playerAgents.get(i*5+j).getAID().getLocalName(), gridCells.get(1+i).get(j));
-				frmWerewolves.addPropertyChangeListener("playerState@"+playerAgents.get(i*5+j).getAID().getLocalName(), new PropertyChangeListener() {
+				Player player = playerAgents.get(i*5+j);
+				if(player.getPlayerRole().equals(PlayerRole.Villager) && villagerImg!=null) gridCells.get(1+i).get(j).setImage(villagerImg);
+				else if(player.getPlayerRole().equals(PlayerRole.Werewolf) && werewolfImg!=null) gridCells.get(1+i).get(j).setImage(werewolfImg);
+				gridCells.get(1+i).get(j).add(new JLabel("<html><font color='white' size='5'>"+player.getAID().getLocalName()+"<br>"+player.getPlayerRole()+"<br>"+player.getPlayerState()+"</font></html>"));
+				//font-weight: bold;
+				playersPanels.put(player.getAID().getLocalName(), gridCells.get(1+i).get(j));
+				frmWerewolves.addPropertyChangeListener("playerState@"+player.getAID().getLocalName(), new PropertyChangeListener() {
 					@Override
 					public void propertyChange(PropertyChangeEvent e) {
-						JPanel playerPanel = playersPanels.get(e.getPropertyName().substring(12));
+						BackgroundPanel playerPanel = playersPanels.get(e.getPropertyName().substring(12));
 						((JLabel)playerPanel.getComponent(0)).setText(e.getNewValue().toString());
 						playerPanel.repaint();
 					}
