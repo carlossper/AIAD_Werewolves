@@ -7,13 +7,14 @@ import utils.PlayerRole;
  * Created by ei10117 on 28/11/2016.
  */
 public class User {
-    private AID name;
+
     private PlayerRole role;
     private Boolean alive = false;
-
-
+    private int numberVotes;
+    private AID name;
     public User(AID name) {
         this.name = name;
+        this.numberVotes = 0;
     }
 
     public AID getName() {
@@ -39,6 +40,16 @@ public class User {
     public void setAlive(Boolean alive) {
         this.alive = alive;
     }
+
+    public void addVote() {
+        this.numberVotes++;
+    }
+
+    public void resetVotes(){
+        this.numberVotes = 0;
+    }
+
+    public int getVotes() { return this.numberVotes; }
 }
 
 
