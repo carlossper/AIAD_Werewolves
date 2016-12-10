@@ -8,8 +8,26 @@ import jade.core.AID;
 public class Opponent {
 
     private double trust;
+    private String name;
 
     public Opponent() {
-        this.trust = 0.5;
+        this.setTrust(0.5);
+        this.setName(name);
     }
+
+	public double getTrust() {
+		return trust;
+	}
+
+	public void setTrust(double trust) {
+		this.trust = trust;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
 }

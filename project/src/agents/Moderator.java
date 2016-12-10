@@ -25,19 +25,19 @@ public class Moderator extends Agent{
     private int numberPlayers = -1;
 
     private State state = State.REGISTER;
-    private ConcurrentHashMap<AID,User> users;
+    private ConcurrentHashMap<String,User> users;
     private Random randomGenerator = new Random();
     
     //property change events
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     
     public Moderator() {
-		users = new ConcurrentHashMap<AID,User>();
+		users = new ConcurrentHashMap<String,User>();
     }
     
     public Moderator(int numPlayers) {
     	numberPlayers=numPlayers;
-		users = new ConcurrentHashMap<AID,User>();
+		users = new ConcurrentHashMap<String,User>();
     }
 
     public void addPropertyChangeListener(PropertyChangeListener listener) {
@@ -57,7 +57,7 @@ public class Moderator extends Agent{
     	return users.get(key);
     }
     
-    public ConcurrentHashMap<AID,User> getUsers() {
+    public ConcurrentHashMap<String,User> getUsers() {
     	return users;
     }
     
@@ -86,6 +86,7 @@ public class Moderator extends Agent{
                     switch (msg.getPerformative())
                     {
                         case ACLMessage.INFORM:
+
                             if(msg.getContent().equals("Estabelecer Ligacao"))
                             {
                                 //System.out.println("Pedido de ligacao recebido.");
@@ -94,16 +95,25 @@ public class Moderator extends Agent{
 
                             if(msg.getContent().equals("Sim, estou pronto."))
                             {
-                               users.get(msg.getSender()).setAlive(true);
+                               users.get(msg.getSender().getLocalName()).setAlive(true);
                                numberPlayers++;
                             }
+
+
+                            if(msg.getContent().startsWith("Vote"))
+                            {
+                                String[] mensagems = msg.getContent().split(" ");
+                                users.get(mensagems[1]).addVote();
+                            }
+
                             break;
                         case ACLMessage.ACCEPT_PROPOSAL:
+
                             if(state == State.STARTING) {
                                 if (msg.getContent().equals("Aceito Ligacao")) ;
                                 {
                                 	//System.out.println("resposta de aceitação recebido");
-                                    users.put(msg.getSender(), new User(msg.getSender()));
+                                    users.put(msg.getSender().getLocalName(), new User(msg.getSender()));
                                     System.out.println("Jogador " + msg.getSender().getLocalName() + " conectado.");
 
 
@@ -118,6 +128,7 @@ public class Moderator extends Agent{
                                 }
                             }
                             break;
+
                     }
                 }
                 else block();
@@ -143,7 +154,7 @@ public class Moderator extends Agent{
                 }
                 break;
             case WEREWOLVES_VOTING:
-            	for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet())
+            	for (ConcurrentHashMap.Entry<String,User> entry : users.entrySet())
             	{	
             		if(entry.getValue().getRole().equals(PlayerRole.Werewolf))
             		{
@@ -181,7 +192,7 @@ public class Moderator extends Agent{
 
         System.out.println("GeneratePlayerRoles().");
         //generate villagers
-        for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
+        for (ConcurrentHashMap.Entry<String,User> entry : users.entrySet()) {
 
             entry.getValue().setRole(PlayerRole.Villager);
         }
@@ -189,8 +200,8 @@ public class Moderator extends Agent{
     	//generate wolves - 30% of players
     	for(int i=0; i < Math.floor(this.numberPlayers * 0.3) ; i++) {
     		int rand = randomGenerator.nextInt(numberPlayers);
-    		Iterator<Entry<AID,User>> it = users.entrySet().iterator();
-    		Entry<AID,User> entry = it.next();
+    		Iterator<Entry<String,User>> it = users.entrySet().iterator();
+    		Entry<String,User> entry = it.next();
     		for(int j=1; j < rand; j++) {
     			entry = it.next();
     		}
@@ -202,15 +213,15 @@ public class Moderator extends Agent{
     	}    	
 
     	//send roles along with opponents
-        for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
+        for (ConcurrentHashMap.Entry<String,User> entry : users.entrySet()) {
 
             User user = entry.getValue();
 
             //send names
             String names = new String();
-            for (ConcurrentHashMap.Entry<AID,User> entry2 : users.entrySet()) {
+            for (ConcurrentHashMap.Entry<String,User> entry2 : users.entrySet()) {
                if(!entry.equals(entry2) && !(entry.getValue().getRole().equals(PlayerRole.Werewolf) && entry2.getValue().getRole().equals(PlayerRole.Werewolf)))
-            	   names += entry2.getKey().getLocalName()+ " ";
+            	   names += entry2.getKey() + " ";
             }
             
             Utils.sendMessage(user.getRole().name() + " " + names,user.getName(),ACLMessage.INFORM,this, null);
@@ -221,16 +232,16 @@ public class Moderator extends Agent{
     }
 
     private void sendMessageToAllPlayers(String message, Object contentObject, int type) {
-        for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
-            AID name = entry.getKey();
+        for (ConcurrentHashMap.Entry<String,User> entry : users.entrySet()) {
+            AID name = entry.getValue().getName();
             Utils.sendMessage(message,name, type,this, contentObject);
         }
     }
     
     private void sendMessageToOfSameRole(PlayerRole role, String message, Object contentObject, int type) {
-    	for (ConcurrentHashMap.Entry<AID,User> entry : users.entrySet()) {
+    	for (ConcurrentHashMap.Entry<String,User> entry : users.entrySet()) {
             if(entry.getValue().getRole().equals(role))
-            	Utils.sendMessage(message, entry.getKey(), type,this, contentObject);
+            	Utils.sendMessage(message, entry.getValue().getName(), type,this, contentObject);
         }
     }
 
@@ -242,5 +253,18 @@ public class Moderator extends Agent{
         msg.setContent("Eliminado");
         msg.setSender(name);
         this.send(msg);
+    }
+
+    public void getMostVoted()
+    {
+        AID mostVoted = null;
+        int max = 0;
+        for (ConcurrentHashMap.Entry<String,User> entry : users.entrySet()) {
+            if(entry.getValue().getVotes() > max)
+                mostVoted = entry.getValue().getName();
+        }
+
+        Utils.sendMessage("Eliminado",mostVoted, ACLMessage.INFORM,this,null);
+
     }
 }

@@ -4,6 +4,7 @@ import jade.core.AID;
 import users.Opponent;
 import users.User;
 
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -12,12 +13,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class KnowledgeBase {
     private String time;
     private int turn;
-    private ConcurrentHashMap<String, Opponent> opponents;
-
+    private ArrayList<Opponent> opponents = new ArrayList<Opponent>();
+    
     public KnowledgeBase() {
         time = "day";
         turn = 0;
-        opponents = new ConcurrentHashMap<String,Opponent>();
     }
 
     public void  addTurn() {
@@ -33,17 +33,23 @@ public class KnowledgeBase {
         time = "night";
     }
 
+    public ArrayList<Opponent> getOpponents()
+    {
+    	return opponents;
+    }
 
     public void saveopponents(String[] opponentsNames, String localName)
     {
 
         for(int i=1; i<opponentsNames.length; i++ )
         {
-            opponents.put(opponentsNames[i], new Opponent());
+            Opponent op = new Opponent();
+            op.setName(opponentsNames[i]);
+            opponents.add(op);
         }
         String mensagem = "";
-        for (ConcurrentHashMap.Entry<String,Opponent> entry : opponents.entrySet() ) {
-                mensagem += entry.getKey()+ " ,";
+        for (int i=0; i<opponents.size(); i++) {
+                mensagem += opponents.get(i).getName()+ ", ";
         }
         System.out.println(localName + ": Os meus adversarios sao : " + mensagem);
     }

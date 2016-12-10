@@ -27,7 +27,7 @@ public class Utils {
         }
     }
 
-    static public void sendMessage(String message, AID destination, int type, Agent agent, Object contentObject) {
+    static public void sendMessage(final String message, final AID destination, final int type, final Agent agent, final Object contentObject) {
         agent.addBehaviour(new OneShotBehaviour() {
                                @Override
                                public void action() {
