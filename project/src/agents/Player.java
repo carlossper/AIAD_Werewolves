@@ -96,11 +96,8 @@ public class Player extends Agent {
         addBehaviour(new CyclicBehaviour() {
             @Override
             public void action() {
-
-
                 ACLMessage msg = myAgent.receive();
-
-
+                
                 if(msg != null)
                 {
                     switch(msg.getPerformative())
@@ -146,8 +143,16 @@ public class Player extends Agent {
                             }
                             else if(msg.getContent().equals("Votacao Geral"));
                             {
+                            	// Voting
                             	System.out.println("Propose vote general received!");
-                            	// Handling function for general voting 
+                            	
+                            	ArrayList<Opponent> ops = knowledgeBase.getOpponents();
+                            	
+                            	int rand = randomGenerator.nextInt(ops.size());
+                            	String vote = "Vote "+ops.get(rand).getName();
+                            	
+                            	System.out.println("Vote sent! => "+vote);
+                            	Utils.sendMessage(vote, moderatorName, ACLMessage.INFORM, this.myAgent, null);
                             	
                             }
                         	break;

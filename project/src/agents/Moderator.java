@@ -221,7 +221,7 @@ public class Moderator extends Agent{
             String names = new String();
             for (ConcurrentHashMap.Entry<String,User> entry2 : users.entrySet()) {
                if(!entry.equals(entry2) && !(entry.getValue().getRole().equals(PlayerRole.Werewolf) && entry2.getValue().getRole().equals(PlayerRole.Werewolf)))
-            	   names += entry2.getKey();
+            	   names += entry2.getKey() + " ";
             }
             
             Utils.sendMessage(user.getRole().name() + " " + names,user.getName(),ACLMessage.INFORM,this, null);
