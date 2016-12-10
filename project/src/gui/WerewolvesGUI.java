@@ -28,6 +28,13 @@ import agents.*;
 public class WerewolvesGUI {
 
 	private JFrame frmWerewolves;
+	private BufferedImage villagerImg = null;
+	private BufferedImage werewolfImg = null;
+	private BufferedImage moonImg = null;
+	private BufferedImage sunImg = null;
+	
+	private boolean isDay=false;
+	
 	private static int numberPlayers;
 	private static NumPlayersSelector numSelDialog;
 	private Moderator modAgent;
@@ -79,6 +86,16 @@ public class WerewolvesGUI {
 		frmWerewolves.setResizable(false);
 		frmWerewolves.setBounds(100, 100, 520, 205);
 		frmWerewolves.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		try {
+			villagerImg = ImageIO.read(new File("resources"+File.separator+"Villager.jpg"));
+			werewolfImg = ImageIO.read(new File("resources"+File.separator+"Werewolf.jpg"));
+			moonImg = ImageIO.read(new File("resources"+File.separator+"moon.jpg"));
+			sunImg = ImageIO.read(new File("resources"+File.separator+"sun.jpg"));
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
 	}
 	
 	private void initializeWithAgents() {
@@ -94,8 +111,8 @@ public class WerewolvesGUI {
 			gridCells.add(line);
 		}
 
-		//turn (day/night)
-		gridCells.get(0).get(1).add(new JLabel("Night"));
+		gridCells.get(0).get(0).setImage(moonImg);
+		gridCells.get(0).get(0).add(new JLabel("<html><font color='white' size='6'>Night</font></html>"));
 		
 		//moderator
 		gridCells.get(0).get(2).add(new JLabel("<html>"+modAgent.getAID().getLocalName()+"<br>"+modAgent.getModState()+"</html>"));
@@ -106,22 +123,12 @@ public class WerewolvesGUI {
 				((JLabel)gridCells.get(0).get(2).getComponent(0)).repaint();
 			}
 		});
-		BufferedImage villagerImg = null;
-		BufferedImage werewolfImg = null;
-		try {
-			villagerImg = ImageIO.read(new File("resources"+File.separator+"Villager.jpg"));
-			werewolfImg = ImageIO.read(new File("resources"+File.separator+"Werewolf.jpg"));
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
 		for(int i=0; i<(numberPlayers/5); i++) {
 			for(int j=0; j<5; j++) {
 				Player player = playerAgents.get(i*5+j);
 				if(player.getPlayerRole().equals(PlayerRole.Villager) && villagerImg!=null) gridCells.get(1+i).get(j).setImage(villagerImg);
 				else if(player.getPlayerRole().equals(PlayerRole.Werewolf) && werewolfImg!=null) gridCells.get(1+i).get(j).setImage(werewolfImg);
 				gridCells.get(1+i).get(j).add(new JLabel("<html><font color='white' size='5'>"+player.getAID().getLocalName()+"<br>"+player.getPlayerRole()+"<br>"+player.getPlayerState()+"</font></html>"));
-				//font-weight: bold;
 				playersPanels.put(player.getAID().getLocalName(), gridCells.get(1+i).get(j));
 				frmWerewolves.addPropertyChangeListener("playerState@"+player.getAID().getLocalName(), new PropertyChangeListener() {
 					@Override
@@ -163,6 +170,19 @@ public class WerewolvesGUI {
 			e.printStackTrace();
 		}
 		
+	}
+	
+	private void switchTurn() {
+		isDay = !isDay;
+		if(isDay){
+			gridCells.get(0).get(0).setImage(sunImg);
+			((JLabel)gridCells.get(0).get(0).getComponent(0)).setText("<html><font color='white' size='6'>Day</font></html>");
+			
+		}
+		else{
+			gridCells.get(0).get(0).setImage(moonImg);
+			((JLabel)gridCells.get(0).get(0).getComponent(0)).setText("<html><font color='white' size='6'>Night</font></html>");
+		}
 	}
 	
 }
