@@ -1,6 +1,7 @@
 package agents;
 
 import jade.core.AID;
+import jade.util.leap.Iterator;
 import users.Opponent;
 import users.User;
 
@@ -52,6 +53,22 @@ public class KnowledgeBase {
                 mensagem += opponents.get(i).getName()+ ", ";
         }
         System.out.println(localName + ": Os meus adversarios sao : " + mensagem);
+    }
+
+    public void deleteOpponent(String name)
+    {
+
+        java.util.Iterator<Opponent> it = opponents.iterator();
+
+        while (it.hasNext()) {
+
+            if (it.next().getName().equals(name)) {
+
+                it.remove();
+                break;
+            }
+        }
+
     }
 
 }

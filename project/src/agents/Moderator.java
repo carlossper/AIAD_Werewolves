@@ -8,6 +8,8 @@ import java.util.Random;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.sun.org.apache.xml.internal.security.utils.SignerOutputStream;
+import com.sun.org.apache.xpath.internal.SourceTree;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
@@ -23,10 +25,13 @@ import utils.*;
 
 public class Moderator extends Agent{
     private int numberPlayers = -1;
-
+    private int messagesReceived;
+    private int currentWerewolves;
+    private Boolean voteEnded;
     private State state = State.REGISTER;
     private ConcurrentHashMap<String,User> users;
     private Random randomGenerator = new Random();
+
     
     //property change events
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
@@ -37,6 +42,9 @@ public class Moderator extends Agent{
     
     public Moderator(int numPlayers) {
     	numberPlayers=numPlayers;
+    	voteEnded = true;
+    	messagesReceived = 0;
+    	currentWerewolves = numberPlayers/3;
 		users = new ConcurrentHashMap<String,User>();
     }
 
@@ -87,6 +95,15 @@ public class Moderator extends Agent{
                     {
                         case ACLMessage.INFORM:
 
+
+                            if(msg.getContent().equals("Eliminaçao confirmada"))
+                            {
+
+                                messagesReceived++;
+                                if(messagesReceived == users.size())
+                                    voteEnded = true;
+                            }
+
                             if(msg.getContent().equals("Estabelecer Ligacao"))
                             {
                                 //System.out.println("Pedido de ligacao recebido.");
@@ -99,11 +116,21 @@ public class Moderator extends Agent{
                                numberPlayers++;
                             }
 
+                            if(!voteEnded) {
+                                if (msg.getContent().startsWith("Vote")) {
+                                    String[] mensagems = msg.getContent().split(" ");
+                                    messagesReceived++;
 
-                            if(msg.getContent().startsWith("Vote"))
-                            {
-                                String[] mensagems = msg.getContent().split(" ");
-                                users.get(mensagems[1]).addVote();
+                                    users.get(mensagems[1]).addVote();
+
+                                    if (messagesReceived == users.size()) {
+                                        mostVoted();
+                                    } else if (messagesReceived == currentWerewolves && state == State.WAITING_VOTES_WEREWOLVES) {
+
+                                        mostVoted();
+                                    }
+
+                                }
                             }
 
                             break;
@@ -150,37 +177,79 @@ public class Moderator extends Agent{
                 	generatePlayerRoles();
                 	// Check if this is right
                 	setModState(State.WEREWOLVES_VOTING);
+                	messagesReceived = 0;
                     
                 }
                 break;
             case WEREWOLVES_VOTING:
+                if(voteEnded)
+                    System.out.println("Werewolves voting");
             	for (ConcurrentHashMap.Entry<String,User> entry : users.entrySet())
             	{	
             		if(entry.getValue().getRole().equals(PlayerRole.Werewolf))
             		{
-            			// Sends message to werewolves
-            			AID dst = entry.getValue().getName();
-            			Utils.sendMessage("Votacao Werewolves", dst, ACLMessage.REQUEST, this, null);
+                        AID dst = entry.getValue().getName();
+                        Utils.sendMessage("Votacao Werewolves", dst, ACLMessage.REQUEST, this, null);
+                        state  = State.WAITING_VOTES_WEREWOLVES;
             		}
                 }
-            	// Change to proper state
-            	setModState(State.DAY_VOTING);
-            	break;
-            case DAY_VOTING:
-            	System.out.println();
-            	this.sendMessageToAllPlayers("Votacao Geral", null, ACLMessage.REQUEST);
+                voteEnded = false;
 
-            	// Change to proper state
-            	setModState(State.SLEEP);            	
             	break;
+
+            case DAY_VOTING:
+
+                if(voteEnded)
+                {
+                    System.out.println("everyone voting");
+                    this.sendMessageToAllPlayers("Votacao Geral", null, ACLMessage.REQUEST);
+                    state  = State.WAITING_VOTES;
+                }
+                voteEnded = false;
+
+            	break;
+
+            case SLEEP:
+                break;
+
+            case WAITING_VOTES_WEREWOLVES:
+                if(voteEnded) {
+                    System.out.println("DAY");
+                    if(currentWerewolves == 0)
+                        state= State.GAMESTARTING;
+                    if(users.size() - currentWerewolves == 0)
+                        state = state.GAMESTARTING;
+                    else
+                    setModState(State.DAY_VOTING);
+
+                    messagesReceived = 0;
+                }
+
+                break;
+
+            case WAITING_VOTES:
+
+                if(voteEnded) {
+                    System.out.println("Night");
+                    System.out.println("cW: " + currentWerewolves);
+                    if(currentWerewolves == 0)
+                        state= State.GAMESTARTING;
+                    if(users.size() - currentWerewolves == 0)
+                        state = state.GAMESTARTING;
+                    else
+                        setModState(State.DAY_VOTING);
+
+                    messagesReceived = 0;
+                }
+
+                break;
             case GAMESTARTING:
             	break;
             	}
 
     }
 
-    public void serviceConfig()
-    {
+    public void serviceConfig() {
         ServiceDescription serviceDescription = new ServiceDescription();
         serviceDescription.setType("moderator");
         serviceDescription.setName(this.getLocalName());
@@ -255,16 +324,32 @@ public class Moderator extends Agent{
         this.send(msg);
     }
 
-    public void getMostVoted()
+    public void mostVoted()
     {
         AID mostVoted = null;
         int max = 0;
         for (ConcurrentHashMap.Entry<String,User> entry : users.entrySet()) {
-            if(entry.getValue().getVotes() > max)
+            System.out.println(entry.getKey() + ": "+ entry.getValue().getVotes() + ", " + entry.getValue().getRole());
+            if(entry.getValue().getVotes() > max) {
                 mostVoted = entry.getValue().getName();
+                max = entry.getValue().getVotes();
+            }
         }
 
-        Utils.sendMessage("Eliminado",mostVoted, ACLMessage.INFORM,this,null);
+        messagesReceived = 0;
 
+        for (ConcurrentHashMap.Entry<String,User> entry : users.entrySet()) {
+            entry.getValue().resetVotes();
+            if(entry.getValue().getName() == mostVoted) {
+                Utils.sendMessage("Eliminado", mostVoted, ACLMessage.INFORM, this, null);
+                if(entry.getValue().getRole() == PlayerRole.FortuneTeller.Werewolf)
+                    currentWerewolves--;
+
+            }
+            else
+                Utils.sendMessage("Eliminacao "+ mostVoted.getLocalName(),entry.getValue().getName(), ACLMessage.INFORM,this,null);
+        }
+
+        users.remove(mostVoted.getLocalName());
     }
 }
