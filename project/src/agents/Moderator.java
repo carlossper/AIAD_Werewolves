@@ -100,6 +100,7 @@ public class Moderator extends Agent{
                             {
 
                                 messagesReceived++;
+
                                 if(messagesReceived == users.size())
                                     voteEnded = true;
                             }

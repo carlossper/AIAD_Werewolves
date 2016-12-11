@@ -103,6 +103,14 @@ public class Player extends Agent {
                     switch(msg.getPerformative())
                     {
                         case ACLMessage.INFORM:
+
+                            if(msg.getContent().startsWith("Eliminacao"))
+                            {
+                                String[] mensagens = msg.getContent().split(" ");
+                                knowledgeBase.deleteOpponent(mensagens[1]);
+                                Utils.sendMessage("Eliminaçao confirmada", moderatorName, ACLMessage.INFORM, myAgent, null);
+                            }
+
                             if(msg.getContent().equals("comecar jogo"))
                             {
                                 Utils.sendMessage("Sim, estou pronto.",moderatorName, ACLMessage.INFORM,myAgent, null);
