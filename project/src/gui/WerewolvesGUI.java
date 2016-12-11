@@ -117,11 +117,11 @@ public class WerewolvesGUI {
 		}
 
 		gridCells.get(0).get(0).setImage(moonImg);
-		gridCells.get(0).get(0).add(new JLabel("<html><font color='white' size='6'>Night</font></html>"), SwingConstants.CENTER);
+		gridCells.get(0).get(0).add(new JLabel("<html><font color='white' size='6'>Night</font></html>",SwingConstants.CENTER));
 		
 		//moderator
 		gridCells.get(0).get(2).add(new JLabel("<html>"+modAgent.getAID().getLocalName()+"<br>"+modAgent.getModState()+"</html>"));
-		frmWerewolves.addPropertyChangeListener("modState", new PropertyChangeListener() {
+		modAgent.addPropertyChangeListener(new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
 				if(((State)e.getNewValue()).equals(State.DAY_VOTING) || ((State)e.getNewValue()).equals(State.WEREWOLVES_VOTING)) switchTurn();
@@ -146,7 +146,7 @@ public class WerewolvesGUI {
 				else if(player.getPlayerRole().equals(PlayerRole.Werewolf) && werewolfImg!=null) gridCells.get(1+i).get(j).setImage(werewolfImg);
 				gridCells.get(1+i).get(j).add(new JLabel("<html><font color='white' size='5'>"+player.getAID().getLocalName()+"<br>"+player.getPlayerRole()+"<br>"+player.getPlayerState()+"</font></html>"));
 				playersPanels.put(player.getAID().getLocalName(), gridCells.get(1+i).get(j));
-				frmWerewolves.addPropertyChangeListener("playerState@"+player.getAID().getLocalName(), new PropertyChangeListener() {
+				player.addPropertyChangeListener(new PropertyChangeListener() {
 					@Override
 					public void propertyChange(PropertyChangeEvent e) {
 						BackgroundPanel playerPanel = playersPanels.get(e.getPropertyName().substring(12));
