@@ -78,7 +78,7 @@ public class Player extends Agent {
             case WAITING: break;
             case WAKE:
                 System.out.println(this.getLocalName() + " o meu role é " + role);
-                setPlayerState(State.GAMEON);
+                setPlayerState(State.ALIVE);
                 break;
         }
 
