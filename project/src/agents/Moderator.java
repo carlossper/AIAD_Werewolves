@@ -217,7 +217,7 @@ public class Moderator extends Agent{
                     System.out.println("DAY");
                     if(currentWerewolves == 0)
                         state= State.GAMESTARTING;
-                    if(users.size() - currentWerewolves == 0)
+                    else if(users.size() - currentWerewolves == 0)
                         state = state.GAMESTARTING;
                     else
                     setModState(State.DAY_VOTING);
@@ -234,7 +234,7 @@ public class Moderator extends Agent{
                     System.out.println("cW: " + currentWerewolves);
                     if(currentWerewolves == 0)
                         state= State.GAMESTARTING;
-                    if(users.size() - currentWerewolves == 0)
+                    else if(users.size() - currentWerewolves == 0)
                         state = state.GAMESTARTING;
                     else
                         setModState(State.DAY_VOTING);
