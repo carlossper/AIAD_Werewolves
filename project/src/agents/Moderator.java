@@ -237,7 +237,7 @@ public class Moderator extends Agent{
                     else if(users.size() - currentWerewolves == 0)
                         state = state.GAMESTARTING;
                     else
-                        setModState(State.DAY_VOTING);
+                        setModState(State.WEREWOLVES_VOTING);
 
                     messagesReceived = 0;
                 }
