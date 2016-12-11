@@ -5,11 +5,8 @@ import java.beans.PropertyChangeSupport;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Random;
-import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.sun.org.apache.xml.internal.security.utils.SignerOutputStream;
-import com.sun.org.apache.xpath.internal.SourceTree;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
@@ -56,6 +53,18 @@ public class Moderator extends Agent{
     	return state;
     }
     private void setModState(State newS) {
+    	if(newS==State.WEREWOLVES_VOTING || newS==State.WAITING_VOTES_WEREWOLVES ||
+    			newS==State.WAITING_VOTES || newS==State.DAY_VOTING) {
+    		synchronized(this) {
+    			try {
+					wait();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+    		}
+    	}
+    		
     	State oldS=state;
     	state = newS;
     	this.pcs.firePropertyChange("modState", oldS, state);
@@ -228,10 +237,8 @@ public class Moderator extends Agent{
                     System.out.println("DAY");
                     System.out.println("Villagers: " + (users.size() - currentWerewolves));
                     System.out.println("Werewolfs: " + currentWerewolves);
-                    if(currentWerewolves == 0)
+                    if(currentWerewolves == 0 || users.size() - currentWerewolves == 0)
                         setModState(State.GAMEDONE);
-                    else if(users.size() - currentWerewolves == 0)
-                        setModState(state.GAMEDONE);
                     else
                     setModState(State.DAY_VOTING);
 
@@ -247,10 +254,8 @@ public class Moderator extends Agent{
                     System.out.println("Night");
                     System.out.println("Villagers: " + (users.size() - currentWerewolves));
                     System.out.println("Werewolfs: " + currentWerewolves);
-                    if(currentWerewolves == 0)
+                    if(currentWerewolves == 0 || users.size() - currentWerewolves == 0)
                         setModState(State.GAMEDONE);
-                    else if(users.size() - currentWerewolves == 0)
-                        setModState(state.GAMEDONE);
                     else
                         setModState(State.WEREWOLVES_VOTING);
 
@@ -340,8 +345,6 @@ public class Moderator extends Agent{
             	Utils.sendMessage(message, entry.getValue().getName(), type,this, contentObject);
         }
     }
-
-
 
     private void informElimination(AID name)
     {

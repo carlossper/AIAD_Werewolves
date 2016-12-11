@@ -4,11 +4,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.SwingConstants;
+
 import java.awt.EventQueue;
 import java.awt.GridLayout;
 import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 
 import jade.core.Profile;
@@ -112,17 +117,28 @@ public class WerewolvesGUI {
 		}
 
 		gridCells.get(0).get(0).setImage(moonImg);
-		gridCells.get(0).get(0).add(new JLabel("<html><font color='white' size='6'>Night</font></html>"));
+		gridCells.get(0).get(0).add(new JLabel("<html><font color='white' size='6'>Night</font></html>"), SwingConstants.CENTER);
 		
 		//moderator
 		gridCells.get(0).get(2).add(new JLabel("<html>"+modAgent.getAID().getLocalName()+"<br>"+modAgent.getModState()+"</html>"));
 		frmWerewolves.addPropertyChangeListener("modState", new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
+				if(((State)e.getNewValue()).equals(State.DAY_VOTING) || ((State)e.getNewValue()).equals(State.WEREWOLVES_VOTING)) switchTurn();
 				((JLabel)gridCells.get(0).get(2).getComponent(0)).setText(e.getNewValue().toString());
 				((JLabel)gridCells.get(0).get(2).getComponent(0)).repaint();
 			}
 		});
+		
+		JButton continueModBtn = new JButton("Continue");
+		continueModBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				continueMod();
+			}
+		});
+		gridCells.get(0).get(3).add(continueModBtn);
+		//player
 		for(int i=0; i<(numberPlayers/5); i++) {
 			for(int j=0; j<5; j++) {
 				Player player = playerAgents.get(i*5+j);
@@ -182,6 +198,13 @@ public class WerewolvesGUI {
 		else{
 			gridCells.get(0).get(0).setImage(moonImg);
 			((JLabel)gridCells.get(0).get(0).getComponent(0)).setText("<html><font color='white' size='6'>Night</font></html>");
+		}
+		((JLabel)gridCells.get(0).get(0).getComponent(0)).repaint();
+	}
+
+	private void continueMod() {
+		synchronized(modAgent) {
+			modAgent.notify();
 		}
 	}
 	
