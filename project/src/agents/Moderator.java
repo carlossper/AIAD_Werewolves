@@ -44,7 +44,7 @@ public class Moderator extends Agent{
     	numberPlayers=numPlayers;
     	voteEnded = true;
     	messagesReceived = 0;
-    	currentWerewolves = numberPlayers/3;
+    	currentWerewolves = (numberPlayers*3)/10;
 		users = new ConcurrentHashMap<String,User>();
     }
 
