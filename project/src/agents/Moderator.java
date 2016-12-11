@@ -67,7 +67,7 @@ public class Moderator extends Agent{
     		
     	State oldS=state;
     	state = newS;
-    	this.pcs.firePropertyChange("modState", oldS, state);
+    	this.pcs.firePropertyChange("", oldS, state);
     }
     
     public User getUser(AID key) {
@@ -337,21 +337,6 @@ public class Moderator extends Agent{
             AID name = entry.getValue().getName();
             Utils.sendMessage(message,name, type,this, contentObject);
         }
-    }
-    
-    private void sendMessageToOfSameRole(PlayerRole role, String message, Object contentObject, int type) {
-    	for (ConcurrentHashMap.Entry<String,User> entry : users.entrySet()) {
-            if(entry.getValue().getRole().equals(role))
-            	Utils.sendMessage(message, entry.getValue().getName(), type,this, contentObject);
-        }
-    }
-
-    private void informElimination(AID name)
-    {
-        ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-        msg.setContent("Eliminado");
-        msg.setSender(name);
-        this.send(msg);
     }
 
     public void mostVoted()

@@ -35,10 +35,12 @@ public class WerewolvesGUI {
 	private JFrame frmWerewolves;
 	private BufferedImage villagerImg = null;
 	private BufferedImage werewolfImg = null;
+	private BufferedImage villagerDeadImg = null;
+	private BufferedImage werewolfDeadImg = null;
 	private BufferedImage moonImg = null;
 	private BufferedImage sunImg = null;
 	
-	private boolean isDay=false;
+	private boolean isDay=true;
 	
 	private static int numberPlayers;
 	private static NumPlayersSelector numSelDialog;
@@ -62,7 +64,7 @@ public class WerewolvesGUI {
 					numberPlayers=numSelDialog.getValue();
 					
 					window.createAgents();
-					Thread.sleep(250);
+					Thread.sleep(500);
 					window.initializeWithAgents();
 					
 					window.frmWerewolves.setEnabled(true);
@@ -94,6 +96,8 @@ public class WerewolvesGUI {
 		try {
 			villagerImg = ImageIO.read(new File("resources"+File.separator+"Villager.jpg"));
 			werewolfImg = ImageIO.read(new File("resources"+File.separator+"Werewolf.jpg"));
+			villagerDeadImg = ImageIO.read(new File("resources"+File.separator+"VillagerDEAD.jpg"));
+			werewolfDeadImg = ImageIO.read(new File("resources"+File.separator+"WerewolfDEAD.jpg"));
 			moonImg = ImageIO.read(new File("resources"+File.separator+"moon.jpg"));
 			sunImg = ImageIO.read(new File("resources"+File.separator+"sun.jpg"));
 		} catch (IOException e1) {
@@ -149,8 +153,10 @@ public class WerewolvesGUI {
 				player.addPropertyChangeListener(new PropertyChangeListener() {
 					@Override
 					public void propertyChange(PropertyChangeEvent e) {
-						BackgroundPanel playerPanel = playersPanels.get(e.getPropertyName().substring(12));
-						((JLabel)playerPanel.getComponent(0)).setText(e.getNewValue().toString());
+						BackgroundPanel playerPanel = playersPanels.get(e.getPropertyName());
+						((JLabel)playerPanel.getComponent(0)).setText("<html><font color='white' size='5'>"+player.getAID().getLocalName()+"<br>"+player.getPlayerRole()+"<br>"+e.getNewValue().toString()+"</font></html>");
+						if(((State)e.getNewValue()).equals(State.DEAD) && player.getPlayerRole().equals(PlayerRole.Villager)) playerPanel.setImage(villagerDeadImg);
+						else if(((State)e.getNewValue()).equals(State.DEAD) && player.getPlayerRole().equals(PlayerRole.Werewolf)) playerPanel.setImage(werewolfDeadImg);
 						playerPanel.repaint();
 					}
 				});

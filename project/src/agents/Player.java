@@ -9,13 +9,11 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
-import jade.lang.acl.UnreadableException;
 import users.Opponent;
 import utils.*;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.Vector;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -51,7 +49,7 @@ public class Player extends Agent {
     private void setPlayerState(State newS) {
     	State oldS = state;
     	state = newS;
-    	this.pcs.firePropertyChange("playerState@"+getAID().getLocalName(), oldS, state);
+    	this.pcs.firePropertyChange(getAID().getLocalName(), oldS, state);
     }
     
     public PlayerRole getPlayerRole() {
@@ -82,11 +80,6 @@ public class Player extends Agent {
                 System.out.println(this.getLocalName() + " o meu role é " + role);
                 setPlayerState(State.GAMEON);
                 break;
-            case GAMEON:
-            	//switch role...
-                break;
-
-
         }
 
     }
@@ -133,8 +126,10 @@ public class Player extends Agent {
                                 Utils.sendMessage("pronto",moderatorName,ACLMessage.INFORM, myAgent,null);
                                 break;
                             }
-                            if(msg.getContent().equals("Eliminado"))
-                                doDelete();
+                            if(msg.getContent().equals("Eliminado")) {
+                            	((Player)myAgent).setPlayerState(State.DEAD);
+                            	doDelete();
+                            }
                             break;
                         case ACLMessage.REQUEST:
                             if(msg.getContent().equals("Votacao Werewolves"))
