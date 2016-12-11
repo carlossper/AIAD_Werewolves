@@ -49,10 +49,10 @@ public class KnowledgeBase {
             opponents.add(op);
         }
         String mensagem = "";
-        for (int i=0; i<opponents.size(); i++) {
+      /*  for (int i=0; i<opponents.size(); i++) {
                 mensagem += opponents.get(i).getName()+ ", ";
         }
-        System.out.println(localName + ": Os meus adversarios sao : " + mensagem);
+        System.out.println(localName + ": Os meus adversarios sao : " + mensagem);*/
     }
 
     public void deleteOpponent(String name)

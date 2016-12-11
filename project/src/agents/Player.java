@@ -121,6 +121,7 @@ public class Player extends Agent {
                                 String[] mensagems = msg.getContent().split(" ");
                                 knowledgeBase.saveopponents(mensagems, myAgent.getLocalName());
                                 setPlayerState(State.WAKE);
+                                Utils.sendMessage("pronto",moderatorName,ACLMessage.INFORM, myAgent,null);
                                 break;
                             }
                             else if(msg.getContent().startsWith(PlayerRole.Villager.name()))
@@ -129,6 +130,7 @@ public class Player extends Agent {
                                 String[] mensagems = msg.getContent().split(" ");
                                 knowledgeBase.saveopponents(mensagems, myAgent.getLocalName());
                                 setPlayerState(State.WAKE);
+                                Utils.sendMessage("pronto",moderatorName,ACLMessage.INFORM, myAgent,null);
                                 break;
                             }
                             if(msg.getContent().equals("Eliminado"))
@@ -138,28 +140,28 @@ public class Player extends Agent {
                             if(msg.getContent().equals("Votacao Werewolves"))
                             {
                             	// Voting
-                            	System.out.println("Propose vote for werewolves received!");
+                            	//System.out.println("Propose vote for werewolves received!");
                             	
                             	ArrayList<Opponent> ops = knowledgeBase.getOpponents();
                             	
                             	int rand = randomGenerator.nextInt(ops.size());
                             	String vote = "Vote "+ops.get(rand).getName();
                             	
-                            	System.out.println("Vote sent! => "+vote);
+                            	System.out.println("Vote sent by "+ myAgent.getLocalName() +"! => "+vote);
                             	Utils.sendMessage(vote, moderatorName, ACLMessage.INFORM, this.myAgent, null);
                             	break;
                             }
                             else if(msg.getContent().equals("Votacao Geral"));
                             {
                             	// Voting
-                            	System.out.println("Propose vote general received!");
+                            	//System.out.println("Propose vote general received!");
                             	
                             	ArrayList<Opponent> ops = knowledgeBase.getOpponents();
                             	
                             	int rand = randomGenerator.nextInt(ops.size());
                             	String vote = "Vote "+ops.get(rand).getName();
-                            	
-                            	System.out.println("Vote sent! => "+vote);
+
+                                System.out.println("Vote sent by "+ myAgent.getLocalName() +"! => "+vote);
                             	Utils.sendMessage(vote, moderatorName, ACLMessage.INFORM, this.myAgent, null);
                             	
                             }
@@ -208,7 +210,7 @@ public class Player extends Agent {
 
     @Override
     protected void takeDown() {
-        System.out.println(this.getLocalName() +" foi terminado.");
+        System.out.println(this.getLocalName() +" foi terminado. Role: "+ role);
 
     }
 }
