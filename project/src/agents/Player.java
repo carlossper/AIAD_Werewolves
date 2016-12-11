@@ -17,6 +17,8 @@ import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.Random;
 
+import gui.WerewolvesGUI;
+
 
 /**
  * Created by ruben on 10/11/2016.
@@ -30,7 +32,9 @@ public class Player extends Agent {
     
     // Random generator
     private Random randomGenerator = new Random();
-
+    
+    //gui
+    private WerewolvesGUI gui= null;
     //property change events
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
@@ -39,6 +43,10 @@ public class Player extends Agent {
         this.knowledgeBase = new KnowledgeBase();
     }
 
+    public void setGUI(WerewolvesGUI wwGUI) {
+    	gui=wwGUI;
+    }
+    
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         this.pcs.addPropertyChangeListener(listener);
     }
@@ -77,7 +85,8 @@ public class Player extends Agent {
             case CONNECTINGSENT: break;
             case WAITING: break;
             case WAKE:
-                System.out.println(this.getLocalName() + " o meu role é " + role);
+                System.out.println(this.getLocalName() + " o meu role e " + role);
+                this.gui.log(this.getLocalName() + " o meu role e " + role);
                 setPlayerState(State.ALIVE);
                 break;
         }
@@ -143,6 +152,8 @@ public class Player extends Agent {
                             	String vote = "Vote "+ops.get(rand).getName();
                             	
                             	System.out.println("Vote sent by "+ myAgent.getLocalName() +"! => "+vote);
+                            	((Player)this.myAgent).gui.log("Vote sent by "+ myAgent.getLocalName() +"! => "+vote);
+                            	
                             	Utils.sendMessage(vote, moderatorName, ACLMessage.INFORM, this.myAgent, null);
                             	break;
                             }
@@ -157,6 +168,7 @@ public class Player extends Agent {
                             	String vote = "Vote "+ops.get(rand).getName();
 
                                 System.out.println("Vote sent by "+ myAgent.getLocalName() +"! => "+vote);
+                                ((Player)this.myAgent).gui.log("Vote sent by "+ myAgent.getLocalName() +"! => "+vote);
                             	Utils.sendMessage(vote, moderatorName, ACLMessage.INFORM, this.myAgent, null);
                             	
                             }
@@ -206,6 +218,7 @@ public class Player extends Agent {
     @Override
     protected void takeDown() {
         System.out.println(this.getLocalName() +" foi terminado. Role: "+ role);
+        this.gui.log(this.getLocalName() +" foi terminado. Role: "+ role);
 
     }
 }

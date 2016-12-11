@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
+import gui.WerewolvesGUI;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
@@ -28,8 +29,9 @@ public class Moderator extends Agent{
     private State state = State.REGISTER;
     private ConcurrentHashMap<String,User> users;
     private Random randomGenerator = new Random();
-
     
+    //gui
+    private WerewolvesGUI gui= null;
     //property change events
     private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     
@@ -45,6 +47,10 @@ public class Moderator extends Agent{
 		users = new ConcurrentHashMap<String,User>();
     }
 
+    public void setGUI(WerewolvesGUI wwGUI) {
+    	gui=wwGUI;
+    }
+    
     public void addPropertyChangeListener(PropertyChangeListener listener) {
         this.pcs.addPropertyChangeListener(listener);
     }
@@ -82,7 +88,8 @@ public class Moderator extends Agent{
 
         Object[] args = getArguments();
         if(args!=null) this.numberPlayers = Integer.parseInt((String)args[0]);
-        System.out.println("Venham jogar Werewolves of Miller's Hollow!!!! São precisos " + this.numberPlayers + " jogadores!" );
+        System.out.println("Venham jogar Werewolves of Miller's Hollow!!!! Sao precisos " + this.numberPlayers + " jogadores!" );
+        if(gui!=null)gui.log("Venham jogar Werewolves of Miller's Hollow!!!! Sao precisos " + this.numberPlayers + " jogadores!" );
         addBehaviour(new CyclicBehaviour() {
             @Override
             public void action() {
@@ -145,6 +152,7 @@ public class Moderator extends Agent{
                             {
                                 messagesReceived++;
                                 System.out.println(messagesReceived);
+                                if(gui!=null)gui.log(""+messagesReceived);
                                 if(messagesReceived == users.size())
                                     setModState(State.WEREWOLVES_VOTING);
                             }
@@ -158,11 +166,12 @@ public class Moderator extends Agent{
                                 	//System.out.println("resposta de aceitação recebido");
                                     users.put(msg.getSender().getLocalName(), new User(msg.getSender()));
                                     System.out.println("Jogador " + msg.getSender().getLocalName() + " conectado.");
-
-
+                                    if(gui!=null)gui.log("Jogador " + msg.getSender().getLocalName() + " conectado.");
+                                    
                                     if (users.size() == numberPlayers)
                                     {
-                                        System.out.println("Todos os jogadores estão conectados, o jogo vai começar.");
+                                        System.out.println("Todos os jogadores estao conectados, o jogo vai comecar.");
+                                        if(gui!=null)gui.log("Todos os jogadores estao conectados, o jogo vai comecar.");
                                         setModState(State.ALLCONNECTED);
                                         
                                         sendMessageToAllPlayers("comecar jogo", null, ACLMessage.INFORM);
@@ -198,9 +207,8 @@ public class Moderator extends Agent{
             case WEREWOLVES_VOTING:
                 messagesReceived = 0;
                 if(voteEnded) {
-                    System.out.println();
-                    System.out.println("Werewolves voting");
-                    System.out.println();
+                    System.out.println("\nWerewolves voting\n");
+                    if(gui!=null)gui.log("\nWerewolves voting\n");
 
                     for (ConcurrentHashMap.Entry<String, User> entry : users.entrySet()) {
                         if (entry.getValue().getRole().equals(PlayerRole.Werewolf)) {
@@ -218,9 +226,8 @@ public class Moderator extends Agent{
                 messagesReceived = 0;
                 if(voteEnded)
                 {
-                    System.out.println();
-                    System.out.println("Community Voting.");
-                    System.out.println();
+                    System.out.println("\nCommunity voting\n");
+                    if(gui!=null)gui.log("\nCommunity voting\n");
                     this.sendMessageToAllPlayers("Votacao Geral", null, ACLMessage.REQUEST);
                     setModState(State.WAITING_VOTES);
                 }
@@ -233,10 +240,8 @@ public class Moderator extends Agent{
 
             case WAITING_VOTES_WEREWOLVES:
                 if(voteEnded) {
-                    System.out.println();
-                    System.out.println("DAY");
-                    System.out.println("Villagers: " + (users.size() - currentWerewolves));
-                    System.out.println("Werewolfs: " + currentWerewolves);
+                    System.out.println("\nDAY\nVillagers: " + (users.size() - currentWerewolves)+"\nWerewolfs: " + currentWerewolves);
+                    if(gui!=null)gui.log("\nDAY\nVillagers: " + (users.size() - currentWerewolves)+"\nWerewolfs: " + currentWerewolves);
                     if(currentWerewolves == 0 || users.size() - currentWerewolves == 0)
                         setModState(State.GAMEDONE);
                     else
@@ -250,10 +255,8 @@ public class Moderator extends Agent{
             case WAITING_VOTES:
 
                 if(voteEnded) {
-                    System.out.println();
-                    System.out.println("Night");
-                    System.out.println("Villagers: " + (users.size() - currentWerewolves));
-                    System.out.println("Werewolfs: " + currentWerewolves);
+                    System.out.println("\nNIGHT\nVillagers: " + (users.size() - currentWerewolves)+"\nWerewolfs: " + currentWerewolves);
+                    if(gui!=null)gui.log("\nNIGHT\nVillagers: " + (users.size() - currentWerewolves)+"\nWerewolfs: " + currentWerewolves);
                     if(currentWerewolves == 0 || users.size() - currentWerewolves == 0)
                         setModState(State.GAMEDONE);
                     else
@@ -267,11 +270,14 @@ public class Moderator extends Agent{
             	break;
 
             case GAMEDONE:
-                System.out.println();
-                if(currentWerewolves == 0)
-                    System.out.println("Ganharam os villagers");
-                else
-                    System.out.println("Ganharam os Werewolfs");
+                if(currentWerewolves == 0){
+                    System.out.println("\nGanharam os Villagers");
+                    if(gui!=null)gui.log("\nGanharam os Villagers");
+                }
+                else {
+                	System.out.println("\nGanharam os Werewolfs");
+                	if(gui!=null)gui.log("\nGanharam os Werewolfs");
+                }
                 setModState(State.GAMESTARTING);
                 break;
 
@@ -345,6 +351,7 @@ public class Moderator extends Agent{
         int max = 0;
         for (ConcurrentHashMap.Entry<String,User> entry : users.entrySet()) {
             System.out.println(entry.getKey() + ": "+ entry.getValue().getVotes() + ", " + entry.getValue().getRole());
+            if(gui!=null)gui.log(entry.getKey() + ": "+ entry.getValue().getVotes() + ", " + entry.getValue().getRole());
             if(entry.getValue().getVotes() > max) {
                 mostVoted = entry.getValue().getName();
                 max = entry.getValue().getVotes();

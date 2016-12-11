@@ -7,7 +7,10 @@ import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
+import javax.swing.JTextArea;
 
 import java.awt.EventQueue;
 import java.awt.GridLayout;
@@ -21,7 +24,6 @@ import jade.core.ProfileImpl;
 import jade.core.Runtime;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
-import utils.PlayerRole;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -29,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 
 import agents.*;
+import utils.PlayerRole;
 
 public class WerewolvesGUI {
 
@@ -39,6 +42,8 @@ public class WerewolvesGUI {
 	private BufferedImage werewolfDeadImg = null;
 	private BufferedImage moonImg = null;
 	private BufferedImage sunImg = null;
+	private JPanel gridPanel = null;
+	private JTextArea logTextArea = null;
 	
 	private boolean isDay=true;
 	
@@ -90,9 +95,22 @@ public class WerewolvesGUI {
 	private void initialize() {
 		frmWerewolves = new JFrame();
 		frmWerewolves.setTitle("Werewolves of Miller's Hollow");
-		frmWerewolves.setResizable(false);
-		frmWerewolves.setBounds(100, 100, 520, 205);
-		frmWerewolves.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		//frmWerewolves.setResizable(false);
+		frmWerewolves.setBounds(100, 100, 800, 205);
+		frmWerewolves.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);		
+		frmWerewolves.getContentPane().setLayout(new GridLayout(1, 2, 1, 1));
+		
+		gridPanel = new JPanel();
+		frmWerewolves.getContentPane().add(gridPanel);
+		
+		logTextArea = new JTextArea();
+		logTextArea.setWrapStyleWord(true);
+		logTextArea.setEditable(false);
+		
+
+		JScrollPane logScrollPane = new JScrollPane(logTextArea);
+		frmWerewolves.getContentPane().add(logScrollPane);
+		
 		try {
 			villagerImg = ImageIO.read(new File("resources"+File.separator+"Villager.jpg"));
 			werewolfImg = ImageIO.read(new File("resources"+File.separator+"Werewolf.jpg"));
@@ -104,18 +122,17 @@ public class WerewolvesGUI {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		
 	}
 	
 	private void initializeWithAgents() {
-		frmWerewolves.setBounds(100, 100, 520, 100+(numberPlayers*100/5)+((numberPlayers/5)+1)*5);
-		frmWerewolves.getContentPane().setLayout(new GridLayout((numberPlayers/5)+1, 5, 5, 5));
+		gridPanel.setLayout(new GridLayout((numberPlayers/5)+1, 5, 5, 5));
+		frmWerewolves.setBounds(100, 100, 800, 100+(numberPlayers*100/5)+((numberPlayers/5)+1)*5);
 		for(int i=0; i<(numberPlayers/5)+1; i++) {
 			ArrayList<BackgroundPanel> line = new ArrayList<BackgroundPanel>();
 			for(int j=0; j <5; j++) {
 				BackgroundPanel panel = new BackgroundPanel((Image)null);
 				line.add(panel);
-				frmWerewolves.getContentPane().add(panel);
+				gridPanel.add(panel);
 			}
 			gridCells.add(line);
 		}
@@ -176,6 +193,7 @@ public class WerewolvesGUI {
 		try {			
 			//mod
 			modAgent = new agents.Moderator(numberPlayers);
+			modAgent.setGUI(this);
 			cc.acceptNewAgent("mod", modAgent).start();
 			
 			//players
@@ -184,6 +202,7 @@ public class WerewolvesGUI {
 			}
 			for(int i=0; i<numberPlayers; i++) {
 				Player playerAgent = new Player();
+				playerAgent.setGUI(this);
 				cc.acceptNewAgent("play"+i, playerAgent).start();
 				playerAgents.add(playerAgent);
 			}
@@ -212,6 +231,11 @@ public class WerewolvesGUI {
 		synchronized(modAgent) {
 			modAgent.notify();
 		}
+	}
+	
+	public void log(String text) {
+		logTextArea.append("\n"+text+"\n");
+		logTextArea.setCaretPosition(logTextArea.getDocument().getLength());
 	}
 	
 }
